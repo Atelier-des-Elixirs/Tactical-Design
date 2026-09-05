@@ -1,0 +1,2821 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tactical Design — Trophées personnalisés</title>
+<style>
+:root {
+  --bg:#111820;
+  --bg2:#18212b;
+  --panel:#1b2632;
+  --line:rgba(255,255,255,.10);
+  --text:#f3f5f7;
+  --muted:#aab5c0;
+  --accent:#ffc400;
+  --accent2:#d9a900;
+  --radius:22px;
+  --shadow:0 18px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,196,0,.05), transparent 30%),
+    linear-gradient(180deg,var(--bg),#0d141b 100%);
+  color:var(--text);
+}
+a{color:inherit;text-decoration:none}
+.container{width:min(1180px,calc(100% - 32px));margin:auto}
+header{
+  position:sticky;top:0;z-index:20;
+  backdrop-filter:blur(14px);
+  background:rgba(17,24,32,.78);
+  border-bottom:1px solid var(--line);
+}
+.nav{
+  min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:24px;
+}
+.brand-mini{font-weight:800;letter-spacing:.08em}
+.navlinks{display:flex;gap:22px;align-items:center;color:var(--muted);font-size:.95rem}
+.navlinks a:hover{color:#fff}
+.nav-cta{
+  padding:11px 16px;border-radius:999px;background:var(--accent);color:#111;font-weight:800;
+}
+.hero{
+  min-height:650px;display:grid;place-items:center;text-align:center;padding:58px 0 34px;
+}
+.logo{
+  width:min(920px,92vw);max-height:320px;object-fit:contain;
+  mix-blend-mode:screen;
+  filter:none;
+}
+.kicker{color:var(--accent);font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:.78rem;margin-top:8px}
+.hero h1{font-size:clamp(2rem,4vw,4.6rem);line-height:1.02;margin:14px auto 14px;max-width:950px}
+.hero p{color:var(--muted);font-size:clamp(1rem,1.7vw,1.2rem);max-width:780px;margin:0 auto 28px}
+.actions{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.btn{
+  border:1px solid var(--line);padding:15px 22px;border-radius:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;min-width:220px;
+}
+.btn.primary{background:var(--accent);color:#101317;border-color:var(--accent)}
+.btn.secondary{background:rgba(255,255,255,.03)}
+.btn:hover{transform:translateY(-1px)}
+
+.showcase{padding:10px 0 56px;overflow:hidden}
+.showcase-title{text-align:center;color:var(--muted);font-size:.92rem;margin-bottom:18px}
+.marquee{position:relative;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.track{display:flex;gap:34px;width:max-content;animation:scroll 28s linear infinite}
+.trophy-placeholder{
+  width:190px;height:230px;border-radius:18px;
+  border:1px dashed rgba(255,255,255,.14);
+  background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.015));
+  display:grid;place-items:center;color:#718090;font-size:.85rem;text-align:center;padding:18px;
+}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(calc(-50% - 17px))}}
+
+.section{padding:88px 0}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:32px}
+.eyebrow{color:var(--accent);font-weight:800;text-transform:uppercase;letter-spacing:.13em;font-size:.78rem}
+h2{font-size:clamp(2rem,4vw,3.5rem);margin:7px 0 0}
+.section-head p{color:var(--muted);max-width:560px;margin:0}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));
+  border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;cursor:pointer;transition:.2s ease;
+}
+.card:hover{transform:translateY(-4px);border-color:rgba(255,196,0,.45)}
+.card .tag{display:inline-block;padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:.78rem}
+.card h3{font-size:1.55rem;margin:22px 0 8px}
+.card .price{font-size:1.35rem;font-weight:900;margin-top:20px}
+.card .price span{color:var(--accent)}
+.card small{color:var(--muted)}
+
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:26px 0 18px}
+.step{padding:12px 8px;border-bottom:2px solid var(--line);color:#7e8a96;font-size:.8rem;text-align:center}
+.step.active{border-color:var(--accent);color:#fff}
+
+.config-demo{
+  display:grid;grid-template-columns:1.1fr .9fr;gap:22px;
+  background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:var(--radius);padding:22px;
+}
+.preview{
+  min-height:420px;border-radius:18px;background:linear-gradient(145deg,#121a22,#202b37);
+  display:grid;place-items:center;border:1px solid rgba(255,255,255,.06);color:#6f7d89;text-align:center;padding:28px;
+}
+.options{padding:10px}
+.option{
+  border:1px solid var(--line);border-radius:14px;padding:16px;margin:10px 0;
+  display:flex;justify-content:space-between;gap:18px;align-items:center;background:rgba(255,255,255,.025)
+}
+.option.disabled{opacity:.45}
+.option .meta{color:var(--muted);font-size:.85rem;margin-top:3px}
+.notice{
+  margin-top:18px;padding:14px 16px;border-left:3px solid var(--accent);
+  background:rgba(255,196,0,.06);color:#d7dde3;border-radius:8px
+}
+.process{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.process div{border-top:1px solid var(--line);padding-top:16px;color:var(--muted)}
+.process strong{display:block;color:#fff;margin-bottom:6px}
+.process span{color:var(--accent);font-weight:900}
+
+footer{border-top:1px solid var(--line);padding:32px 0 48px;color:var(--muted);font-size:.9rem}
+.footer-row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+@media (max-width:850px){
+  .navlinks a:not(.nav-cta){display:none}
+  .cards,.config-demo{grid-template-columns:1fr}
+  .process{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:repeat(3,1fr)}
+  .section-head{display:block}
+  .section-head p{margin-top:14px}
+}
+@media (max-width:520px){
+  .hero{min-height:570px;padding-top:30px}
+  .logo{width:105vw}
+  .actions .btn{width:100%}
+  .process{grid-template-columns:1fr}
+  .trophy-placeholder{width:145px;height:185px}
+}
+
+.marquee-item{width:190px;height:230px;border:0;background:transparent;padding:0;cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
+.marquee-item img{width:100%;height:100%;object-fit:contain;filter:none;transition:transform .18s ease}
+.marquee-item:hover img{transform:scale(1.035)}
+.track:hover{animation-play-state:paused}
+.gallery-section{padding-top:54px}
+.gallery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.gallery-card{background:transparent;border:0;border-radius:20px;overflow:visible;box-shadow:none;scroll-margin-top:100px}
+.gallery-image{width:100%;height:360px;border:0;background:transparent;padding:12px;cursor:zoom-in;display:block}
+.gallery-image img{width:100%;height:100%;object-fit:contain}
+.gallery-copy{padding:18px 20px 22px}.gallery-copy h3{margin:0 0 12px;font-size:1.15rem}.gallery-copy p{margin:5px 0;color:var(--muted);font-size:.92rem}
+.gallery-card.focused{outline:2px solid var(--accent);outline-offset:3px}
+.lightbox{position:fixed;inset:0;z-index:100;background:rgba(4,7,10,.92);display:none;align-items:center;justify-content:center;padding:24px}
+.lightbox.open{display:flex}.lightbox-panel{width:min(1100px,96vw);max-height:92vh;display:grid;grid-template-columns:1.35fr .65fr;background:#111820;border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.lightbox-media{min-height:520px;background:transparent;display:grid;place-items:center;padding:18px}.lightbox-media img{width:100%;height:100%;max-height:82vh;object-fit:contain}
+.lightbox-info{padding:30px;overflow:auto}.lightbox-info h3{font-size:1.45rem;margin:0 0 16px}.lightbox-info p{color:var(--muted);margin:7px 0}
+.lightbox-close{position:fixed;top:18px;right:20px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#19232d;color:#fff;font-size:26px;cursor:pointer;z-index:101}
+@media(max-width:900px){.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lightbox-panel{grid-template-columns:1fr}.lightbox-info{padding:20px}.lightbox-media{min-height:55vh}}
+@media(max-width:560px){.gallery-grid{grid-template-columns:1fr}.gallery-image{height:390px}.marquee-item{width:145px;height:190px}}
+
+
+.tradition-models{
+  margin:34px 0 10px;
+}
+.tradition-title{
+  margin-bottom:18px;
+}
+.tradition-title h3{
+  margin:6px 0 0;
+  font-size:clamp(1.5rem,3vw,2.2rem);
+}
+.model-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+}
+.model-choice{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.02);
+  border-radius:18px;
+  padding:10px;
+  cursor:pointer;
+  transition:.2s ease;
+  min-height:260px;
+  display:grid;
+  place-items:center;
+}
+.model-choice img{
+  width:100%;
+  height:100%;
+  max-height:330px;
+  object-fit:contain;
+  display:block;
+}
+.model-choice:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,196,0,.45);
+}
+.model-choice.selected{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(255,196,0,.18);
+}
+@media(max-width:760px){
+  .model-grid{grid-template-columns:1fr}
+  .model-choice{min-height:220px}
+}
+
+
+.honneur-models{margin:34px 0 10px}
+
+
+.model-collection[hidden]{display:none !important}
+.gamme-card.selected{
+  border-color:var(--accent) !important;
+  outline:2px solid var(--accent) !important;
+  outline-offset:2px;
+}
+.models-empty{
+  border:1px dashed var(--line);
+  border-radius:16px;
+  padding:28px;
+  color:var(--muted);
+  text-align:center;
+  background:rgba(255,255,255,.02);
+}
+
+</style>
+
+<style>
+:root{
+  --bg:#131A20 !important;
+  --panel:#131A20 !important;
+  --panel2:#131A20 !important;
+}
+html,body,
+header,.hero,.showcase,.section,.gallery-section,
+.config-demo,.config-panel,.gallery-card,
+.lightbox-panel,.lightbox-media{
+  background:#131A20 !important;
+  background-color:#131A20 !important;
+}
+body::before, body::after, .hero::before, .hero::after{
+  background:none !important;
+}
+</style>
+
+
+<style>
+.full-configurator{align-items:start}
+.trophy-preview{
+  min-height:560px !important;display:flex !important;flex-direction:column;
+  align-items:stretch !important;justify-content:flex-start !important;
+  padding:20px !important;overflow:hidden
+}
+.preview-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#fff;text-align:left;margin-bottom:14px}
+.preview-heading strong{font-size:1.08rem}
+.preview-heading span{font-size:.82rem;color:var(--muted);text-align:right}
+.visual-stage{
+  position:relative;width:100%;aspect-ratio:1/1;max-height:650px;border-radius:14px;overflow:hidden;
+  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07)
+}
+.visual-placeholder{position:absolute;inset:0;display:grid;place-items:center;padding:35px;text-align:center;color:var(--muted);line-height:1.6}
+.trophy-stack{position:absolute;inset:0}
+.trophy-layer{position:absolute;inset:0;width:100%;height:100%}
+.trophy-wood,.trophy-plate{
+  background-position:center;background-size:100% 100%;background-repeat:no-repeat;
+  -webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat
+}
+.trophy-contours{object-fit:contain;pointer-events:none}
+.trophy-contours.jpeg-contour{mix-blend-mode:multiply}
+.preview-note{margin-top:12px;color:var(--muted);font-size:.78rem;line-height:1.45;text-align:left}
+.config-group{margin:20px 0 26px}
+.config-group-title{display:block;color:#fff;font-weight:800;margin-bottom:10px}
+.choice-grid{display:grid;gap:10px}
+.wood-choice-grid{grid-template-columns:repeat(3,1fr)}
+.metal-choice-grid{grid-template-columns:repeat(2,1fr)}
+.visual-choice{
+  border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:13px;padding:9px;
+  color:#fff;cursor:pointer;text-align:center;transition:.18s ease
+}
+.visual-choice:hover{border-color:rgba(255,196,0,.45)}
+.visual-choice.selected{border-color:var(--accent);box-shadow:0 0 0 1px rgba(255,196,0,.18)}
+.visual-choice .swatch{
+  display:block;width:100%;height:74px;border-radius:9px;margin-bottom:8px;
+  background-size:cover;background-position:center;border:1px solid rgba(255,255,255,.08)
+}
+.visual-choice .swatch.metal{height:68px}
+.model-choice{grid-template-rows:1fr auto;gap:10px;color:#fff}
+.model-thumb{width:100%;aspect-ratio:1/1;height:auto;border-radius:12px;background:transparent;display:grid;place-items:center;overflow:hidden}
+.model-thumb img{width:100%;height:100%;object-fit:contain;display:block;background:transparent}
+.custom-description textarea{
+  width:100%;box-sizing:border-box;border-radius:12px;border:1px solid var(--line);
+  background:rgba(255,255,255,.03);color:#fff;padding:13px 14px;font:inherit;resize:vertical;min-height:120px
+}
+.custom-description textarea:focus{outline:none;border-color:var(--accent)}
+@media(max-width:850px){
+  .trophy-preview{min-height:auto !important}
+  .visual-stage{max-height:none}
+}
+@media(max-width:520px){
+  .wood-choice-grid{grid-template-columns:1fr}
+  .metal-choice-grid{grid-template-columns:1fr 1fr}
+  .visual-choice .swatch{height:58px}
+  .model-thumb{width:100%;aspect-ratio:1/1;height:auto;border-radius:12px;background:transparent;display:grid;place-items:center;overflow:hidden}
+}
+</style>
+
+
+<style id="tradition-escutcheon-styles">
+  .trophy-escutcheon{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    pointer-events:none;
+    z-index:20;
+  }
+  .escutcheon-choice-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .escutcheon-choice-grid .visual-choice{
+    min-height:76px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:center;
+    gap:5px;
+    text-align:left;
+  }
+  .escutcheon-choice-grid .visual-choice small{
+    color:var(--muted);
+    font-size:.82rem;
+  }
+  .escutcheon-choice-grid .visual-choice.selected small{
+    color:inherit;
+  }
+  .tradition-specs{
+    color:var(--muted);
+    font-size:.88rem;
+    line-height:1.45;
+    margin:-4px 0 12px;
+  }
+  @media(max-width:560px){
+    .escutcheon-choice-grid{grid-template-columns:1fr}
+  }
+</style>
+
+
+<style id="premium-escutcheon-styles">
+  [data-premium-escutcheon]:disabled{
+    opacity:.42;
+    cursor:not-allowed;
+    filter:saturate(.25);
+  }
+  [data-premium-escutcheon]:disabled:hover{
+    transform:none;
+    border-color:var(--line);
+  }
+  [data-premium-escutcheon]:disabled small{
+    color:#d9a7a7;
+  }
+</style>
+
+<style id="v8-css">.gamme-card{padding:10px 12px!important;min-height:0!important}.gamme-card .tag{display:none!important}.gamme-card h3{font-size:1rem!important;margin:0 0 4px!important}.gamme-card small{font-size:.72rem!important}.gamme-card .price{font-size:.78rem!important;margin-top:5px!important}.config-progress{position:sticky;top:0;z-index:1000;display:flex;gap:3px;align-items:center;overflow:auto;white-space:nowrap;padding:5px 6px;background:rgba(19,26,32,.97);border-bottom:1px solid rgba(255,255,255,.1)}.config-progress button{border:0;background:none;color:var(--muted);font:inherit;font-size:.64rem;padding:2px 3px}.config-progress button.active{color:var(--accent);font-weight:700}.config-progress span{font-size:.62rem;color:var(--muted)}.model-surcharge{display:block;color:var(--accent);font-weight:700;margin-top:4px}.config-mobile-controls{margin:8px 0}.config-mobile-controls button{padding:8px 12px;border:1px solid var(--line);border-radius:7px;background:transparent;color:inherit}.config-live-summary{display:flex;gap:12px;flex-wrap:wrap;padding:7px 9px;border-top:1px solid var(--line);font-size:.76rem;color:var(--muted)}.plate-form{display:grid;gap:9px}.plate-form label{display:grid;gap:4px;font-size:.76rem;color:var(--muted)}.plate-form input{box-sizing:border-box;width:100%;padding:8px;border:1px solid var(--line);border-radius:7px;background:rgba(255,255,255,.04);color:inherit}.date-row{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center}.trophy-plate-text{z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#111;font-family:Arial,sans-serif;font-weight:700;line-height:1.1;pointer-events:none}.trophy-plate-text div{max-width:38%;white-space:nowrap;overflow:hidden}.trophy-plate-text div:nth-child(1){font-size:clamp(5px,1vw,11px)}.trophy-plate-text div:nth-child(2){font-size:clamp(5px,.85vw,9px)}.trophy-plate-text div:nth-child(3){font-size:clamp(4px,.72vw,8px)}@media(max-width:700px){.config-progress{justify-content:flex-start}#trophy-stack{position:sticky!important;bottom:32px!important;z-index:900!important;max-height:38vh!important;background:#131A20}.config-live-summary{position:sticky;bottom:0;z-index:901;background:#131A20}}</style>
+<style id="v8-1-home-gallery-fix">
+  .legacy-gallery-hidden,
+  #realisations-gallery,
+  #gallery:not(.marquee),
+  .realisations-gallery:not(.marquee),
+  .gallery-fixed:not(.marquee),
+  .home-gallery:not(.marquee){
+    display:none !important;
+  }
+</style>
+
+
+<style id="v8-2-gallery-portrait">
+  .realisations-mosaic-v8 img{
+    width:100% !important;
+    aspect-ratio:3 / 4 !important;
+    object-fit:cover !important;
+  }
+</style>
+
+
+<style id="v8-3-remove-old-progress">
+  .progress:not(#config-progress),
+  .progress-bar:not(#config-progress),
+  .stepper:not(#config-progress),
+  .steps:not(#config-progress),
+  .config-steps:not(#config-progress),
+  .config-progress-old,
+  .old-progress,
+  #progress:not(#config-progress),
+  #config-steps:not(#config-progress){
+    display:none !important;
+  }
+</style>
+
+
+<style id="v9-distinct-config-page">
+  #configurator-page-v9{
+    min-height:100vh;
+    background:#131A20;
+    color:inherit;
+    box-sizing:border-box;
+  }
+  #configurator-page-v9[hidden]{display:none!important}
+
+  .configurator-page-top-v9{
+    position:sticky;
+    top:0;
+    z-index:1100;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-height:46px;
+    padding:7px 12px;
+    background:rgba(19,26,32,.98);
+    border-bottom:1px solid rgba(255,255,255,.08);
+    backdrop-filter:blur(8px);
+  }
+  .configurator-home-v9{
+    appearance:none;
+    border:1px solid rgba(255,255,255,.15);
+    background:transparent;
+    color:inherit;
+    border-radius:8px;
+    padding:7px 10px;
+    cursor:pointer;
+  }
+  .configurator-page-title-v9{
+    font-size:.86rem;
+    font-weight:700;
+    letter-spacing:.02em;
+  }
+
+  /* Dans la page configurateur, une seule étape/menu est visible à la fois. */
+  #configurator-page-v9 .config-step-panel[hidden]{
+    display:none!important;
+  }
+  #configurator-page-v9 .config-step-panel:not([hidden]){
+    display:block!important;
+  }
+
+  /* Évite toute sensation de liste continue entre les étapes */
+  #configurator-page-v9 .config-step-panel{
+    animation:v9StepIn .18s ease-out;
+  }
+  @keyframes v9StepIn{
+    from{opacity:.35;transform:translateY(5px)}
+    to{opacity:1;transform:none}
+  }
+
+  @media(max-width:700px){
+    .configurator-page-top-v9{
+      min-height:42px;
+      padding:6px 9px;
+    }
+    .configurator-page-title-v9{font-size:.78rem}
+  }
+</style>
+
+
+<style id="v9-1-configurator-window-fix">
+  #configurator-page-v9{
+    position:fixed !important;
+    inset:0 !important;
+    z-index:5000 !important;
+    width:100vw !important;
+    height:100dvh !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    background:#131A20 !important;
+    display:none !important;
+    box-sizing:border-box !important;
+  }
+  #configurator-page-v9.is-open{
+    display:block !important;
+  }
+  #configurator-page-v9[hidden]{
+    display:none !important;
+  }
+  html.configurator-open-v9,
+  body.configurator-open-v9{
+    overflow:hidden !important;
+  }
+
+  #configurator-page-v9 .configurator-page-top-v9{
+    position:sticky !important;
+    top:0 !important;
+    z-index:5200 !important;
+  }
+
+  /* La barre d'état se place sous l'en-tête de la fenêtre. */
+  #configurator-page-v9 #config-progress{
+    top:46px !important;
+    z-index:5100 !important;
+  }
+
+  @media(max-width:700px){
+    #configurator-page-v9 #config-progress{
+      top:42px !important;
+    }
+  }
+</style>
+
+
+<style id="v10-config-flow">
+  #configurator-page-v9.v10-ready #configurateur > .container,
+  #configurator-page-v9.v10-ready #configurateur > #honneur-models,
+  #configurator-page-v9.v10-ready #configurateur > #prestige-models,
+  #configurator-page-v9.v10-ready #configurateur > .steps,
+  #configurator-page-v9.v10-ready #configurateur > .full-configurator{
+    display:none !important;
+  }
+
+  #configurator-page-v9 .v10-shell{
+    display:flex;
+    flex-direction:column;
+    min-height:100%;
+    background:#131A20;
+  }
+
+  #configurator-page-v9 .v10-preview{
+    order:1;
+    background:#131A20;
+    padding:6px 10px 2px;
+  }
+  #configurator-page-v9 .v10-preview .preview-note{display:none!important}
+  #configurator-page-v9 .v10-preview .visual-stage{
+    width:min(100%,380px);
+    margin:0 auto;
+  }
+
+  #configurator-page-v9 .v10-status{
+    order:2;
+    background:#131A20;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  #configurator-page-v9 .v10-status #config-progress{
+    position:static!important;
+    top:auto!important;
+    margin:0!important;
+  }
+  #configurator-page-v9 .v10-status .config-live-summary{
+    position:static!important;
+    bottom:auto!important;
+  }
+
+  #configurator-page-v9 .v10-stage{
+    order:3;
+    padding:10px 12px 20px;
+  }
+  #configurator-page-v9 .v10-page{display:none!important}
+  #configurator-page-v9 .v10-page.active{display:block!important}
+
+  #configurator-page-v9 .v10-back{
+    margin-top:12px;
+    padding:8px 13px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:transparent;
+    color:inherit;
+    cursor:pointer;
+  }
+  #configurator-page-v9 .v10-back:disabled{opacity:.35;cursor:default}
+
+  /* Le simulateur reste au sommet de la fenêtre lorsqu'on fait défiler les options. */
+  #configurator-page-v9 .v10-preview{
+    position:sticky;
+    top:42px;
+    z-index:5300;
+  }
+  #configurator-page-v9 .v10-status{
+    position:sticky;
+    top:min(36vh,390px);
+    z-index:5290;
+  }
+
+  @media(max-width:700px){
+    #configurator-page-v9 .v10-preview .visual-stage{
+      width:min(100%,300px);
+      max-height:29vh;
+    }
+    #configurator-page-v9 .v10-preview{
+      padding:4px 8px 1px;
+    }
+    #configurator-page-v9 .v10-status{
+      top:calc(42px + 29vh);
+    }
+    #configurator-page-v9 .v10-stage{padding:8px 9px 18px}
+  }
+</style>
+
+
+<style id="v10-1-model-grid">
+  /* Étape Modèle : 2 vignettes par ligne */
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] #tradition-models,
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] #honneur-models,
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] #prestige-models{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+
+  /* Chaque vignette de modèle reste compacte. */
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-choice{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  /* Zone image strictement carrée 1:1, sans ajout de fond. */
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-thumb{
+    width:100% !important;
+    height:auto !important;
+    aspect-ratio:1 / 1 !important;
+    background:transparent !important;
+    overflow:hidden !important;
+  }
+
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-thumb img,
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-choice img{
+    width:100% !important;
+    height:100% !important;
+    aspect-ratio:1 / 1 !important;
+    object-fit:contain !important;
+    background:transparent !important;
+    display:block !important;
+  }
+</style>
+
+
+<style id="v10-2-model-grid-effective">
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-grid{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-choice{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    padding:8px !important;
+    display:grid !important;
+    grid-template-rows:auto auto !important;
+    gap:7px !important;
+  }
+
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-thumb{
+    width:100% !important;
+    aspect-ratio:1 / 1 !important;
+    height:auto !important;
+    min-height:0 !important;
+    background:transparent !important;
+    overflow:hidden !important;
+  }
+
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-thumb img{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    max-height:none !important;
+    aspect-ratio:1 / 1 !important;
+    object-fit:contain !important;
+    background:transparent !important;
+  }
+
+  /* Annule explicitement l'ancienne règle mobile .model-grid{grid-template-columns:1fr}. */
+  @media(max-width:760px){
+    #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    }
+    #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-choice{
+      min-height:0 !important;
+    }
+  }
+</style>
+
+
+<style id="v10-3-model-labels">
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-choice
+  > :not(.model-thumb):not(.model-surcharge){
+    display:none !important;
+  }
+
+  #configurator-page-v9 .v10-page[data-v10-page="modele"] .model-surcharge{
+    display:block !important;
+    margin-top:4px !important;
+    text-align:center !important;
+  }
+</style>
+
+
+<style id="v11-simulator-core-fix">
+  /* Fonctionnement V7 restauré : le stack remplit toujours la scène carrée. */
+  #configurator-page-v9 #trophy-stack{
+    position:absolute !important;
+    inset:0 !important;
+    width:100% !important;
+    height:100% !important;
+    max-height:none !important;
+    bottom:auto !important;
+    background:transparent !important;
+    z-index:auto !important;
+  }
+
+  #configurator-page-v9 .visual-stage{
+    position:relative !important;
+    overflow:hidden !important;
+  }
+
+  /* C'est l'aperçu complet qui reste en haut, jamais le stack de calques. */
+  #configurator-page-v9 .v10-preview{
+    position:sticky !important;
+    top:42px !important;
+    z-index:5300 !important;
+    background:#131A20 !important;
+  }
+
+  #configurator-page-v9 .trophy-layer{
+    position:absolute !important;
+    inset:0 !important;
+    width:100% !important;
+    height:100% !important;
+  }
+
+  @media(max-width:700px){
+    #configurator-page-v9 #trophy-stack{
+      position:absolute !important;
+      inset:0 !important;
+      width:100% !important;
+      height:100% !important;
+      max-height:none !important;
+      bottom:auto !important;
+    }
+  }
+</style>
+
+
+<style id="v11-1-mobile-square-simulator">
+  /* Même repère carré sur ordinateur et smartphone */
+  #configurator-page-v9 .v10-preview .visual-stage{
+    position:relative !important;
+    width:min(100%,380px) !important;
+    height:auto !important;
+    aspect-ratio:1 / 1 !important;
+    max-width:380px !important;
+    max-height:none !important;
+    margin:0 auto !important;
+    overflow:hidden !important;
+    flex:none !important;
+  }
+
+  #configurator-page-v9 #trophy-stack,
+  #configurator-page-v9 .trophy-layer{
+    position:absolute !important;
+    inset:0 !important;
+    width:100% !important;
+    height:100% !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    max-width:none !important;
+    max-height:none !important;
+    transform:none !important;
+  }
+
+  /* Les calques PNG 1:1 gardent exactement le même cadrage */
+  #configurator-page-v9 img.trophy-layer{
+    object-fit:contain !important;
+    object-position:center center !important;
+  }
+
+  #configurator-page-v9 .trophy-wood,
+  #configurator-page-v9 .trophy-plate{
+    background-position:center center !important;
+    background-size:100% 100% !important;
+    background-repeat:no-repeat !important;
+
+    -webkit-mask-position:center center !important;
+    mask-position:center center !important;
+    -webkit-mask-size:100% 100% !important;
+    mask-size:100% 100% !important;
+    -webkit-mask-repeat:no-repeat !important;
+    mask-repeat:no-repeat !important;
+  }
+
+  @media(max-width:700px){
+    /*
+      Suppression de l'ancienne contrainte max-height:29vh.
+      Elle transformait le carré en rectangle sur certains téléphones,
+      d'où le décalage et l'étirement des calques.
+    */
+    #configurator-page-v9 .v10-preview .visual-stage{
+      width:min(calc(100vw - 28px),330px) !important;
+      max-width:330px !important;
+      height:auto !important;
+      aspect-ratio:1 / 1 !important;
+      max-height:none !important;
+    }
+
+    #configurator-page-v9 .v10-preview{
+      padding:4px 8px 2px !important;
+    }
+
+    /*
+      L'état reste sous le simulateur sans utiliser 29vh comme faux calcul
+      de hauteur. Il redevient un bloc normal dans le flux.
+    */
+    #configurator-page-v9 .v10-status{
+      position:relative !important;
+      top:auto !important;
+      z-index:5290 !important;
+    }
+  }
+</style>
+
+
+<style id="v11-3-desktop-two-columns">
+  /*
+    ORDINATEUR UNIQUEMENT :
+    options à gauche / simulateur à droite.
+    Les règles mobile existantes restent inchangées.
+  */
+  @media (min-width: 901px){
+    #configurator-page-v9 .v10-shell{
+      display:grid !important;
+      grid-template-columns:minmax(430px, 1fr) minmax(420px, 48vw) !important;
+      grid-template-areas:
+        "status preview"
+        "stage  preview" !important;
+      column-gap:28px !important;
+      row-gap:12px !important;
+      align-items:start !important;
+      width:min(1500px, calc(100vw - 48px)) !important;
+      max-width:1500px !important;
+      margin:0 auto !important;
+      padding:18px 0 28px !important;
+    }
+
+    #configurator-page-v9 .v10-preview{
+      grid-area:preview !important;
+      position:sticky !important;
+      top:76px !important;
+      z-index:2 !important;
+      width:100% !important;
+      min-width:0 !important;
+      padding:0 !important;
+      background:#131A20 !important;
+      align-self:start !important;
+    }
+
+    #configurator-page-v9 .v10-preview .visual-stage{
+      width:min(100%, 620px) !important;
+      max-width:620px !important;
+      height:auto !important;
+      aspect-ratio:1 / 1 !important;
+      max-height:none !important;
+      margin:0 auto !important;
+    }
+
+    #configurator-page-v9 .v10-status{
+      grid-area:status !important;
+      position:relative !important;
+      top:auto !important;
+      z-index:1 !important;
+      width:100% !important;
+      min-width:0 !important;
+    }
+
+    #configurator-page-v9 .v10-stage{
+      grid-area:stage !important;
+      width:100% !important;
+      min-width:0 !important;
+      padding-bottom:24px !important;
+    }
+
+    #configurator-page-v9 .v10-page{
+      width:100% !important;
+      min-width:0 !important;
+    }
+
+    /* Le simulateur ne doit plus imposer une hauteur plein écran sur desktop. */
+    #configurator-page-v9 .v10-preview,
+    #configurator-page-v9 .v10-preview .preview,
+    #configurator-page-v9 .v10-preview .trophy-preview{
+      min-height:0 !important;
+      height:auto !important;
+      max-height:none !important;
+    }
+  }
+</style>
+
+
+<style id="v11-5-validate-buttons-style">
+  #configurator-page-v9 .v10-validate{
+    display:block;
+    width:100%;
+    margin:16px 0 4px;
+    padding:13px 18px;
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:10px;
+    background:#f0c75e;
+    color:#131A20;
+    font:inherit;
+    font-weight:800;
+    cursor:pointer;
+  }
+  #configurator-page-v9 .v10-validate:hover{
+    filter:brightness(1.05);
+  }
+</style>
+
+<style id="v11-6-all-step-validation-style">
+#configurator-page-v9 .v10-validate-final.validated{opacity:.82}
+</style>
+
+<style id="v11-8-no-screen-movement">
+  #configurator-page-v9,
+  #configurator-page-v9 *{
+    scroll-behavior:auto !important;
+  }
+</style>
+
+</head>
+<body>
+<header>
+  <div class="container nav">
+    <div class="brand-mini">TACTICAL DESIGN</div>
+    <nav class="navlinks">
+      <a href="#galerie">Nos réalisations</a>
+      <a href="#process">Fonctionnement</a>
+      <a class="nav-cta" href="#configurateur">Configurer</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <img class="logo" src="images/img_001_9a7439f85bed75c9.png" alt="Logo Tactical Design">
+      <div class="kicker">Fabrication personnalisée</div>
+      <h1>Un trophée pensé pour votre unité.</h1>
+      <p>Configurez votre modèle, votre finition, votre écusson et votre plaque. Chaque demande est vérifiée avant mise en fabrication.</p>
+      <div class="actions">
+        <a class="btn primary" href="#configurateur">Configurer mon trophée</a>
+        <a class="btn secondary" href="#galerie">Nos réalisations</a>
+      <button type="button" class="btn secondary" id="open-processus-page">Notre processus</button></div>
+    </div>
+  </section>
+
+  
+
+<section id="realisations" class="showcase">
+  <div class="showcase-title">Quelques réalisations Tactical Design — cliquez pour ouvrir la galerie</div>
+  <div class="marquee"><div class="track"><button class="marquee-item" data-target="realisation-1" aria-label="Voir CADRE — PRESTIGE"><img src="images/img_002_787c4109304fa093.png" alt="CADRE — PRESTIGE"></button>
+<button class="marquee-item" data-target="realisation-2" aria-label="Voir BOUCLIER — HONNEUR"><img src="images/img_003_d71ae83af9aa5cdf.png" alt="BOUCLIER — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-3" aria-label="Voir SUR MESURE — HONNEUR"><img src="images/img_004_4848afb03bd5f981.png" alt="SUR MESURE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-4" aria-label="Voir SUR MESURE — HONNEUR"><img src="images/img_005_f0fbcd670a778c95.png" alt="SUR MESURE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-5" aria-label="Voir MÉDAILLE — HONNEUR"><img src="images/img_006_8991372fbe4f021e.png" alt="MÉDAILLE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-6" aria-label="Voir MÉDAILLE — HONNEUR"><img src="images/img_007_bd67b3403754a202.png" alt="MÉDAILLE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-7" aria-label="Voir VITRINE — HONNEUR"><img src="images/img_008_00f1a1ca74332ac4.png" alt="VITRINE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-8" aria-label="Voir MÉDAILLE — HONNEUR"><img src="images/img_009_04983e2c1321df1e.png" alt="MÉDAILLE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-9" aria-label="Voir CADRE — HONNEUR"><img src="images/img_010_72aed577876661c3.png" alt="CADRE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-10" aria-label="Voir SUR MESURE — PRESTIGE"><img src="images/img_011_6c56a08dbe2005df.png" alt="SUR MESURE — PRESTIGE"></button>
+<button class="marquee-item" data-target="realisation-11" aria-label="Voir SUR MESURE — PRESTIGE"><img src="images/img_012_fd5b0d93c59d270a.png" alt="SUR MESURE — PRESTIGE"></button><button class="marquee-item" data-target="realisation-1" aria-label="Voir CADRE — PRESTIGE"><img src="images/img_002_787c4109304fa093.png" alt="CADRE — PRESTIGE"></button>
+<button class="marquee-item" data-target="realisation-2" aria-label="Voir BOUCLIER — HONNEUR"><img src="images/img_003_d71ae83af9aa5cdf.png" alt="BOUCLIER — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-3" aria-label="Voir SUR MESURE — HONNEUR"><img src="images/img_004_4848afb03bd5f981.png" alt="SUR MESURE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-4" aria-label="Voir SUR MESURE — HONNEUR"><img src="images/img_005_f0fbcd670a778c95.png" alt="SUR MESURE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-5" aria-label="Voir MÉDAILLE — HONNEUR"><img src="images/img_006_8991372fbe4f021e.png" alt="MÉDAILLE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-6" aria-label="Voir MÉDAILLE — HONNEUR"><img src="images/img_007_bd67b3403754a202.png" alt="MÉDAILLE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-7" aria-label="Voir VITRINE — HONNEUR"><img src="images/img_008_00f1a1ca74332ac4.png" alt="VITRINE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-8" aria-label="Voir MÉDAILLE — HONNEUR"><img src="images/img_009_04983e2c1321df1e.png" alt="MÉDAILLE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-9" aria-label="Voir CADRE — HONNEUR"><img src="images/img_010_72aed577876661c3.png" alt="CADRE — HONNEUR"></button>
+<button class="marquee-item" data-target="realisation-10" aria-label="Voir SUR MESURE — PRESTIGE"><img src="images/img_011_6c56a08dbe2005df.png" alt="SUR MESURE — PRESTIGE"></button>
+<button class="marquee-item" data-target="realisation-11" aria-label="Voir SUR MESURE — PRESTIGE"><img src="images/img_012_fd5b0d93c59d270a.png" alt="SUR MESURE — PRESTIGE"></button></div></div>
+</section>
+
+<!-- Galerie fixe "Nos réalisations" retirée de la page d’accueil -->
+
+
+<div id="configurator-page-v9" class="configurator-page-v9" hidden>
+  <div class="configurator-page-top-v9">
+    <button type="button" id="configurator-home-v9" class="configurator-home-v9">← Accueil</button>
+    <div class="configurator-page-title-v9">Configurer mon trophée</div>
+  </div>
+  <section id="configurateur" class="section">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Configurer mon trophée</div>
+          <h2>Choisissez votre Collection</h2>
+        </div>
+        
+      </div>
+
+      <div class="config-progress" id="config-progress"><button data-step-nav="collection" class="active">Collection</button><span>›</span><button data-step-nav="modele">Modèle</button><span>›</span><button data-step-nav="ecusson">Écusson</button><span>›</span><button data-step-nav="finitions">Finitions</button><span>›</span><button data-step-nav="plaque">Plaque nominative</button><span>›</span><button data-step-nav="texte">Texte</button></div>
+      <div class="cards">
+        <article class="card gamme-card" data-gamme="TRADITION">
+          
+          <h3>TRADITION</h3>
+          <small>Format compact et économique · env. 20 × 10 cm · écusson Ø env. 7 cm</small>
+          <div class="price">À partir de <span>29,90 €</span></div>
+        </article>
+        <article class="card gamme-card" data-gamme="HONNEUR">
+          
+          <h3>HONNEUR</h3>
+          <small>Format classique · env. 14 × 20 cm · écusson Ø env. 8,5 à 14 cm selon le modèle</small>
+          <div class="price">À partir de <span>49,90 €</span></div>
+        </article>
+        <article class="card gamme-card" data-gamme="PRESTIGE">
+          
+          <h3>PRESTIGE</h3>
+          <small>Grand format · privilégié pour les compositions sur-mesure · env. 20 × 30 cm · écusson Ø env. 12 cm</small>
+          <div class="price">À partir de <span>64,90 €</span></div>
+        </article>
+      </div>
+
+      
+
+<section class="model-collection tradition-models" id="tradition-models"
+         data-gamme="TRADITION" hidden>
+  <div class="tradition-title">
+    <div class="eyebrow">Gamme Tradition</div>
+    <h3>Choisissez votre modèle</h3>
+  </div>
+  <div class="model-grid">
+    
+        <button class="model-choice" type="button"
+                data-gamme="TRADITION" data-model="CADRE">
+          <span class="model-thumb"><img src="images/img_013_c41b42772185fc17.png" alt="CADRE"></span>
+          <strong>Cadre</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="TRADITION" data-model="MONOLITHE">
+          <span class="model-thumb"><img src="images/img_014_1e8249626962e600.png" alt="MONOLITHE"></span>
+          <strong>Monolithe</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="TRADITION" data-model="RUBAN">
+          <span class="model-thumb"><img src="images/img_015_6a7dee6a7b868ea2.png" alt="RUBAN"></span>
+          <strong>Ruban</strong>
+        </button>
+  </div>
+</section>
+</div>
+
+
+<section class="model-collection honneur-models" id="honneur-models"
+         data-gamme="HONNEUR" hidden>
+  <div class="tradition-title">
+    <div class="eyebrow">Gamme Honneur</div>
+    <h3>Choisissez votre modèle</h3>
+  </div>
+  <div class="model-grid">
+    
+        <button class="model-choice" type="button"
+                data-gamme="HONNEUR" data-model="VITRINE">
+          <span class="model-thumb"><img src="images/img_016_435c9e001e546f40.png" alt="VITRINE"></span>
+          <strong>Vitrine</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="HONNEUR" data-model="COCARDE">
+          <span class="model-thumb"><img src="images/img_017_9fb3111e2a531e59.png" alt="COCARDE"></span>
+          <strong>Cocarde</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="HONNEUR" data-model="CADRE">
+          <span class="model-thumb"><img src="images/img_018_458cef4a593740c9.png" alt="CADRE"></span>
+          <strong>Cadre</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="HONNEUR" data-model="MÉDAILLE">
+          <span class="model-thumb"><img src="images/img_019_0c96dfa21efb66c5.png" alt="MÉDAILLE"></span>
+          <strong>Médaille</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="HONNEUR" data-model="BOUCLIER">
+          <span class="model-thumb"><img src="images/img_020_bdbaa204546fcb6c.png" alt="BOUCLIER"></span>
+          <strong>Bouclier</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="HONNEUR" data-model="BASTION">
+          <span class="model-thumb"><img src="images/img_021_a42a77246d7ebf39.png" alt="BASTION"></span>
+          <strong>Bastion</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="HONNEUR" data-model="SUR-MESURE">
+          <span class="model-thumb"><img src="images/img_022_ea8bd878ff6a73eb.png" alt="SUR-MESURE"></span>
+          <strong>Sur-mesure</strong>
+        <small class="model-surcharge">+9,90 €</small></button>
+  </div>
+</section>
+
+<section class="model-collection prestige-models" id="prestige-models"
+         data-gamme="PRESTIGE" hidden>
+  <div class="tradition-title">
+    <div class="eyebrow">Gamme Prestige</div>
+    <h3>Choisissez votre modèle</h3>
+  </div>
+  <div class="model-grid">
+    
+        <button class="model-choice" type="button"
+                data-gamme="PRESTIGE" data-model="BLASON">
+          <span class="model-thumb"><img src="images/img_023_06e349278afa5874.png" alt="BLASON"></span>
+          <strong>Blason</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="PRESTIGE" data-model="SUR-MESURE">
+          <span class="model-thumb"><img src="images/img_022_ea8bd878ff6a73eb.png" alt="SUR-MESURE"></span>
+          <strong>Sur-mesure</strong>
+        </button>
+        <button class="model-choice" type="button"
+                data-gamme="PRESTIGE" data-model="CADRE">
+          <span class="model-thumb"><img src="images/img_018_458cef4a593740c9.png" alt="CADRE"></span>
+          <strong>Cadre</strong>
+        </button>
+  </div>
+</section>
+
+<div class="steps">
+        <div class="step active">Gamme</div>
+        <div class="step">Modèle</div>
+        <div class="step">Finition</div>
+        <div class="step">Écusson</div>
+        <div class="step">Plaque</div>
+        <div class="step">Texte</div>
+      </div>
+
+      
+      <div class="config-demo full-configurator">
+        <div class="preview trophy-preview">
+          <div class="preview-heading">
+            <strong>Aperçu de votre trophée</strong>
+            <span id="preview-model-label">Sélectionnez une gamme puis un modèle</span>
+          </div>
+
+          <div class="visual-stage" id="visual-stage">
+            <div class="visual-placeholder" id="visual-placeholder">
+              Choisissez d’abord une gamme, puis un modèle.
+            </div>
+
+            <div class="trophy-stack" id="trophy-stack" hidden>
+              <div class="trophy-layer trophy-wood" id="trophy-wood"></div>
+              <div class="trophy-layer trophy-plate" id="trophy-plate"></div>
+              <img class="trophy-layer trophy-contours" id="trophy-contours" alt="">
+              <img class="trophy-layer trophy-escutcheon" id="trophy-escutcheon" alt="Aperçu de l’écusson" hidden><div class="trophy-layer trophy-plate-text" id="trophy-plate-text" hidden><div id="sim-line-1">GRADE NOM Prénom</div><div id="sim-line-2">UNITÉ / BRIGADE</div><div id="sim-line-3">JJ/MM/AAAA - JJ/MM/AAAA</div></div>
+            </div>
+          </div>
+
+          <div class="preview-note">
+            Aperçu indicatif : le veinage, les teintes et les effets de finition peuvent varier légèrement sur la pièce réelle.
+          </div>
+        </div>
+
+        <div class="options visual-options">
+          <div class="eyebrow">Personnalisation</div>
+          <h3 id="options-title" style="font-size:1.8rem;margin:8px 0 18px">Choisissez votre modèle</h3>
+
+          <div class="config-group">
+            <div class="config-group-title">Finition du bois</div>
+            <div class="choice-grid wood-choice-grid">
+              <button class="visual-choice selected" type="button" data-wood="clair">
+                <span class="swatch" style="background-image:url('images/img_024_3afed9ce347c3797.jpg')"></span><strong>Clair</strong>
+              </button>
+              <button class="visual-choice" type="button" data-wood="brun">
+                <span class="swatch" style="background-image:url('images/img_025_9dd7260246f25c33.jpg')"></span><strong>Brun</strong>
+              </button>
+              <button class="visual-choice" type="button" data-wood="vieilli">
+                <span class="swatch" style="background-image:url('images/img_026_dfc0153ba2896ae5.jpg')"></span><strong>Vieilli</strong>
+              </button>
+            </div>
+          </div>
+
+          <div class="config-group" id="tradition-escutcheon-group" hidden>
+            <div class="config-group-title">Écusson</div>
+            <div class="tradition-specs">
+              Gamme Tradition · écusson Ø env. 7 cm · l’écusson bois est inclus dans le prix de base.
+            </div>
+            <div class="choice-grid escutcheon-choice-grid">
+              <button class="visual-choice selected" type="button" data-escutcheon="bois">
+                <strong>Écusson bois</strong>
+                <small>Inclus</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="bois_pvc_or">
+                <strong>Bois / PVC or brossé</strong>
+                <small>+4,90 €</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="bois_pvc_argent">
+                <strong>Bois / PVC argent brossé</strong>
+                <small>+4,90 €</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="pvc_argent">
+                <strong>PVC argent brossé</strong>
+                <small>+4,90 €</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="pvc_or">
+                <strong>PVC or brossé</strong>
+                <small>+4,90 €</small>
+              </button>
+            </div>
+          </div>
+
+          <div class="config-group" id="premium-escutcheon-group" hidden>
+            <div class="config-group-title">Écusson</div>
+            <div class="tradition-specs" id="premium-escutcheon-note">
+              Choisissez la finition de l’écusson. Le rendu est actualisé directement dans le simulateur.
+            </div>
+            <div class="choice-grid escutcheon-choice-grid">
+              <button class="visual-choice selected" type="button" data-escutcheon="bois" data-premium-escutcheon>
+                <strong>Gravure bois</strong>
+                <small data-option-price>Inclus</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="bois_pvc_or" data-premium-escutcheon>
+                <strong>Bois / PVC Or brossé</strong>
+                <small data-option-price>+4,90 €</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="bois_pvc_argent" data-premium-escutcheon>
+                <strong>Bois / PVC Argent brossé</strong>
+                <small data-option-price>+4,90 €</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="pvc_or" data-premium-escutcheon>
+                <strong>PVC Or brossé</strong>
+                <small data-option-price>+7,90 €</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="pvc_argent" data-premium-escutcheon>
+                <strong>PVC Argent brossé</strong>
+                <small data-option-price>+7,90 €</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="couleur" data-premium-escutcheon>
+                <strong>Couleur</strong>
+                <small data-option-price>+14,90 €</small>
+              </button>
+              <button class="visual-choice" type="button" data-escutcheon="mix_couleur_bois_pvc" data-premium-escutcheon>
+                <strong>Mix Couleur / Bois / PVC</strong>
+                <small data-option-price>+14,90 €</small>
+              </button>
+            </div>
+          </div>
+
+          <div class="config-group" id="text-config-group"><div class="config-group-title">Texte de la plaque</div><div class="plate-form"><label>GRADE + NOM + Prénom<input id="plate-line-1" type="text" placeholder="GRADE NOM Prénom"></label><label>UNITÉ / BRIGADE<input id="plate-line-2" type="text" placeholder="UNITÉ / BRIGADE"></label><label>DATE<div class="date-row"><input id="plate-date-1" type="text" maxlength="10" inputmode="numeric" placeholder="JJ/MM/AAAA"><span>–</span><input id="plate-date-2" type="text" maxlength="10" inputmode="numeric" placeholder="JJ/MM/AAAA"></div></label></div></div><div class="config-group">
+            <div class="config-group-title">Plaque nominative</div>
+            <div class="choice-grid metal-choice-grid">
+              <button class="visual-choice selected" type="button" data-metal="argent">
+                <span class="swatch metal" style="background-image:url('images/img_027_7378528377608cee.jpg')"></span><strong>Argent</strong>
+              </button>
+              <button class="visual-choice" type="button" data-metal="or">
+                <span class="swatch metal" style="background-image:url('images/img_028_643879ba8128186c.jpg')"></span><strong>Or</strong>
+              </button>
+            </div>
+          </div>
+
+          <div class="config-group custom-description" id="custom-description" hidden>
+            <label class="config-group-title" for="custom-description-text">Description du trophée sur-mesure</label>
+            <textarea id="custom-description-text" rows="5"
+              placeholder="Décrivez la forme souhaitée, le thème, les éléments à intégrer ou toute indication utile."></textarea>
+          </div>
+
+          <div class="notice">
+            Les textures sont appliquées directement à tes masques de forme. Le contour du modèle reste superposé au-dessus et la plaque or/argent utilise son propre masque.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+</main>
+
+<footer>
+  <div class="container footer-row">
+    <div>© Tactical Design</div>
+    <div>Mentions légales · CGV · Confidentialité</div>
+  </div>
+</footer>
+
+<div class="config-mobile-controls"><button id="config-back-btn" type="button">← Retour</button></div><div class="config-live-summary"><span><b>Collection :</b> <span id="summary-collection">—</span></span><span><b>Modèle :</b> <span id="summary-model">—</span></span><span><b>Prix :</b> <span id="summary-price">—</span></span></div><script>
+const galleryData=[{"title": "CADRE — PRESTIGE", "src": "images/img_002_787c4109304fa093.png", "details": ["Écussons : bois multicouche", "Finition : brun", "Plaque : PVC or", "Fixation : murale ou sur socle"]}, {"title": "BOUCLIER — HONNEUR", "src": "images/img_003_d71ae83af9aa5cdf.png", "details": ["Écusson : bois multicouche", "Finition : brun / brut clair (contraste)"]}, {"title": "SUR MESURE — HONNEUR", "src": "images/img_004_4848afb03bd5f981.png", "details": ["Écusson : PVC argent brossé", "Plaque : PVC argent brossé", "Finition : couleur / bois brut"]}, {"title": "SUR MESURE — HONNEUR", "src": "images/img_005_f0fbcd670a778c95.png", "details": ["Écusson : PVC couleur fourni par l’unité", "Plaque : PVC argent brossé", "Finition : brun / cadre et socle noirs"]}, {"title": "MÉDAILLE — HONNEUR", "src": "images/img_006_8991372fbe4f021e.png", "details": ["Écusson : MDF multicouche couleur", "Finition : brun / couleur", "Plaque : PVC argent brossé"]}, {"title": "MÉDAILLE — HONNEUR", "src": "images/img_007_bd67b3403754a202.png", "details": ["Écusson : MDF multicouche / PVC", "Finition : couleur / brun", "Plaque : PVC argent brossé"]}, {"title": "VITRINE — HONNEUR", "src": "images/img_008_00f1a1ca74332ac4.png", "details": ["Écusson : bois multicouche", "Support : PVC transparent", "Plaque : PVC or", "Finition : vieillie"]}, {"title": "MÉDAILLE — HONNEUR", "src": "images/img_009_04983e2c1321df1e.png", "details": ["Écusson : MDF couleur / bois gravé", "Finition : vieillie / brun", "Plaque : PVC argent brossé"]}, {"title": "CADRE — HONNEUR", "src": "images/img_010_72aed577876661c3.png", "details": ["Écusson : MDF multicouche couleur", "Finition : brun", "Plaque : PVC argent brossé", "Option : recto-verso avec gravure sur PVC argent brossé"]}, {"title": "SUR MESURE — PRESTIGE", "src": "images/img_011_6c56a08dbe2005df.png", "details": ["Écusson : MDF multicouche couleur", "Finition : brun / éléments gravés en bois brut", "Plaque : PVC argent brossé"]}, {"title": "SUR MESURE — PRESTIGE", "src": "images/img_012_fd5b0d93c59d270a.png", "details": ["Base : modèle Cocarde — Honneur", "Écusson : gravure sur PVC argent brossé", "Plaque : PVC argent brossé"]}];
+document.querySelectorAll('.card').forEach(card=>{card.addEventListener('click',()=>{document.querySelectorAll('.card').forEach(c=>c.style.outline='none');card.style.outline='2px solid #ffc400';document.querySelector('.config-demo').scrollIntoView({behavior:'smooth',block:'center'});});});
+document.querySelectorAll('.marquee-item').forEach(btn=>btn.addEventListener('click',()=>{const card=document.getElementById(btn.dataset.target);if(!card)return;card.scrollIntoView({behavior:'smooth',block:'center'});document.querySelectorAll('.gallery-card').forEach(c=>c.classList.remove('focused'));card.classList.add('focused');setTimeout(()=>card.classList.remove('focused'),1800);}));
+const lb=document.getElementById('lightbox'),lbImg=document.getElementById('lightboxImg'),lbTitle=document.getElementById('lightboxTitle'),lbDetails=document.getElementById('lightboxDetails');
+function openLightbox(i){const item=galleryData[i];lbImg.src=item.src;lbImg.alt=item.title;lbTitle.textContent=item.title;lbDetails.innerHTML=item.details.map(x=>`<p>${x}</p>`).join('');lb.classList.add('open');lb.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+function closeLightbox(){lb.classList.remove('open');lb.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+document.querySelectorAll('.gallery-image').forEach(btn=>btn.addEventListener('click',()=>openLightbox(Number(btn.dataset.index))));
+document.getElementById('lightboxClose').addEventListener('click',closeLightbox);lb.addEventListener('click',e=>{if(e.target===lb)closeLightbox();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
+</script>
+<div class="lightbox" id="lightbox" aria-hidden="true"><button class="lightbox-close" id="lightboxClose" aria-label="Fermer">×</button><div class="lightbox-panel"><div class="lightbox-media"><img id="lightboxImg" alt=""></div><div class="lightbox-info"><h3 id="lightboxTitle"></h3><div id="lightboxDetails"></div></div></div></div>
+
+<script>
+document.querySelectorAll('.model-choice').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.model-choice').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    window.tacticalSelectedModel = btn.dataset.model;
+  });
+});
+</script>
+
+
+<script>
+document.querySelectorAll('.honneur-choice').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    window.tacticalSelectedGamme = 'HONNEUR';
+    window.tacticalSelectedModel = btn.dataset.model;
+  });
+});
+</script>
+
+
+<script>
+(function(){
+  const rangeCards = document.querySelectorAll('.gamme-card');
+  const modelCollections = document.querySelectorAll('.model-collection');
+
+  function showRange(range){
+    rangeCards.forEach(card => {
+      card.classList.toggle('selected', card.dataset.gamme === range);
+    });
+
+    modelCollections.forEach(section => {
+      section.hidden = section.dataset.gamme !== range;
+    });
+
+    // Reset selected model when changing range.
+    document.querySelectorAll('.model-choice').forEach(btn => btn.classList.remove('selected'));
+    window.tacticalSelectedGamme = range;
+    window.tacticalSelectedModel = null;
+
+    
+  }
+
+  rangeCards.forEach(card => {
+    card.addEventListener('click', function(e){
+      e.preventDefault();
+      showRange(card.dataset.gamme);
+    });
+  });
+})();
+</script>
+
+
+<!-- Les vignettes de choix utilisent les illustrations commerciales d'origine. Les masques/contours/plaque ci-dessous servent uniquement au simulateur. -->
+<script>
+(function(){
+  const MODEL_ASSETS = {"TRADITION": {"MONOLITHE": {"mask": "images/img_029_0b2204ce6d3e4807.png", "contour": "images/img_030_96e5123606c15c9f.png", "plate": "images/img_031_57f6aa3222d2410b.png", "contourIsJpeg": false}, "CADRE": {"mask": "images/img_032_add09415a99cdcea.png", "contour": "images/img_033_7292566f898f37b2.png", "plate": "images/img_034_c628af4dd6d3520f.png", "contourIsJpeg": false}, "RUBAN": {"mask": "images/img_035_b5136e2fa1809eaa.png", "contour": "images/img_036_81824b5eca5d063f.png", "plate": "images/img_037_d3dc44e03587ba21.png", "contourIsJpeg": false}}, "HONNEUR": {"VITRINE": {"mask": "images/img_038_7752ce789e905383.png", "contour": "images/img_039_f80ef36a0012048b.png", "plate": "images/img_040_0f80e49c92cc9b92.png", "contourIsJpeg": false}, "COCARDE": {"mask": "images/img_041_34130d7cab3ebef7.png", "contour": "images/img_042_c57ac7d9e75129b0.png", "plate": "images/img_043_2a5e1a4a7ac83ddc.png", "contourIsJpeg": false}, "CADRE": {"mask": "images/img_044_abe92b1c48aa6249.png", "contour": "images/img_045_587e6807f3e0f7ff.png", "plate": "images/img_046_5812a092182f38ff.png", "contourIsJpeg": false}, "MÉDAILLE": {"mask": "images/img_047_fd3fe2920b8682e9.png", "contour": "images/img_048_4c520facdd2d5340.png", "plate": "images/img_049_ffe0371f7f9fd7a3.png", "contourIsJpeg": false}, "BOUCLIER": {"mask": "images/img_050_9302459219c91c07.png", "contour": "images/img_051_dded74a65e20fd9b.jpg", "plate": "images/img_052_d07e54b5ef3bbcde.png", "contourIsJpeg": true}, "BASTION": {"mask": "images/img_053_4e6d109bce4ed033.png", "contour": "images/img_054_743c266fb085da00.png", "plate": "images/img_055_cc25f5a63dd185e9.png", "contourIsJpeg": false}, "SUR-MESURE": {"mask": "images/img_056_a14d37c70764bd8a.png", "contour": "images/img_057_81c34ffd92ad5cfb.jpg", "plate": "images/img_058_a06632c3bce2a1f3.png", "contourIsJpeg": true}}, "PRESTIGE": {"BLASON": {"mask": "images/img_059_f2339a5dd05a4db9.png", "contour": "images/img_060_9f2b485a382147e2.jpg", "plate": "images/img_061_31cd7deade01854b.png", "contourIsJpeg": true}, "SUR-MESURE": {"mask": "images/img_056_a14d37c70764bd8a.png", "contour": "images/img_057_81c34ffd92ad5cfb.jpg", "plate": "images/img_058_a06632c3bce2a1f3.png", "contourIsJpeg": true}, "CADRE": {"mask": "images/img_062_053ca30b2879a017.png", "contour": "images/img_063_65899db729a7882f.png", "plate": "images/img_064_0ec5b4f345eeb20e.png", "contourIsJpeg": false}}};
+  const TEXTURES = {"vieilli": "images/img_026_dfc0153ba2896ae5.jpg", "brun": "images/img_025_9dd7260246f25c33.jpg", "clair": "images/img_024_3afed9ce347c3797.jpg", "or": "images/img_028_643879ba8128186c.jpg", "argent": "images/img_027_7378528377608cee.jpg"};
+
+  const TRADITION_ESCUTCHEONS = {"MONOLITHE": {"bois": "images/img_065_32a83121d414361d.png", "bois_pvc_or": "images/img_066_4e9928aa67a4f41d.png", "bois_pvc_argent": "images/img_067_886e8a3487278137.png", "pvc_argent": "images/img_068_27d8ac3a89cd71d6.png", "pvc_or": "images/img_069_6286e1258e598ecd.png"}, "CADRE": {"bois": "images/img_070_a3e7bbc7f4e6221e.png", "bois_pvc_or": "images/img_071_311acffc95d477e3.png", "bois_pvc_argent": "images/img_072_f1a726e9bfe72969.png", "pvc_argent": "images/img_073_1e0fcbc6dc8f407e.png", "pvc_or": "images/img_074_483be5977f848807.png"}, "RUBAN": {"bois": "images/img_075_d95db4fe9b1157ab.png", "bois_pvc_or": "images/img_076_44e24c412fc4574b.png", "bois_pvc_argent": "images/img_077_a4d84ce50420d70f.png", "pvc_argent": "images/img_078_c7fb896d0d506200.png", "pvc_or": "images/img_079_c4c06487f50ca924.png"}};
+
+  const HONNEUR_ESCUTCHEONS = {"VITRINE": {"bois": "images/img_080_5ea010c49bb65aa1.png", "bois_pvc_or": "images/img_081_5d6ef412beb1e48c.png", "bois_pvc_argent": "images/img_082_e72c9c338167bfcf.png", "pvc_or": "images/img_083_3783e1324f6bd07e.png", "pvc_argent": "images/img_084_191fd2fa31f6880f.png"}, "COCARDE": {"bois": "images/img_085_377304e38336e3a3.png", "bois_pvc_or": "images/img_086_574b320dfe3a4f40.png", "bois_pvc_argent": "images/img_087_d97a2a84964635a6.png", "pvc_or": "images/img_088_65d9cc2263083124.png", "pvc_argent": "images/img_089_e0534cecf90d028a.png", "couleur": "images/img_090_a7ca6a7430774e93.png", "mix_couleur_bois_pvc": "images/img_091_3f8bc2bc8a2eba8e.png"}, "CADRE": {"bois": "images/img_092_dfc24841f2c73ef6.png", "bois_pvc_or": "images/img_093_1d27aeb0c9f17dac.png", "bois_pvc_argent": "images/img_094_ba59ba88623aff06.png", "pvc_or": "images/img_095_a17857ea870902b3.png", "pvc_argent": "images/img_096_1c21721dca48fed1.png", "couleur": "images/img_097_c771289f0146f738.png", "mix_couleur_bois_pvc": "images/img_098_598e8918363462c4.png"}, "MÉDAILLE": {"bois": "images/img_099_6a243fde97a57536.png", "bois_pvc_or": "images/img_100_ad391db0584a1d04.png", "bois_pvc_argent": "images/img_101_be7bed22491eb7fa.png", "pvc_or": "images/img_102_5f858bfa32dc95cb.png", "pvc_argent": "images/img_103_9f6873b2664307a3.png", "couleur": "images/img_104_1933e5ea5ab8ad68.png", "mix_couleur_bois_pvc": "images/img_105_d0bb0a638306df68.png"}, "BOUCLIER": {"bois": "images/img_106_e8f29a26fab4b071.png", "bois_pvc_or": "images/img_107_41cea5dfe7bd72c7.png", "bois_pvc_argent": "images/img_108_98826b1b21af5523.png", "pvc_or": "images/img_109_3f9bb0d9ee21674a.png", "pvc_argent": "images/img_110_e372cf24ed6dbfc1.png", "couleur": "images/img_111_3ae9a8a23dfcab09.png", "mix_couleur_bois_pvc": "images/img_112_4dc810cbae617fd9.png"}, "BASTION": {"bois": "images/img_113_a0dc1f4d886fdaf9.png", "bois_pvc_or": "images/img_114_0aaff662fa1d6d22.png", "bois_pvc_argent": "images/img_115_61bc9b8289653023.png", "pvc_or": "images/img_116_1ee02650acae802c.png", "pvc_argent": "images/img_117_4ffc803df85f31fd.png", "couleur": "images/img_118_718c437ee7eaaad0.png", "mix_couleur_bois_pvc": "images/img_119_c04926b480b85f9c.png"}, "SUR-MESURE": {"bois": "images/img_120_2b95ac7500715d7a.png", "bois_pvc_or": "images/img_121_a8a5e8f8e7e13c40.png", "bois_pvc_argent": "images/img_122_dfbaf9ebc219df00.png", "pvc_or": "images/img_123_4866107f7dcd2d99.png", "pvc_argent": "images/img_124_41100bdc16798f57.png", "couleur": "images/img_125_b475ef9fbc63a620.png", "mix_couleur_bois_pvc": "images/img_126_42c49a172cfbb8a1.png"}};
+  const PRESTIGE_ESCUTCHEONS = {"BLASON": {"bois": "images/img_127_3d2ae93e1903537c.png", "bois_pvc_or": "images/img_128_86e870916c16044d.png", "bois_pvc_argent": "images/img_129_2828eabd81cd0e82.png", "pvc_or": "images/img_130_e059a50718c6c7a9.png", "pvc_argent": "images/img_131_d4b0a480f1dcd5cb.png", "couleur": "images/img_132_be540f892bc8e0f4.png", "mix_couleur_bois_pvc": "images/img_133_46aa88ceef112017.png"}, "CADRE": {"bois": "images/img_134_2ef98166c2e945ce.png", "bois_pvc_or": "images/img_135_06e22825457b431f.png", "bois_pvc_argent": "images/img_136_3df9bac3777166da.png", "pvc_or": "images/img_137_cf5cf84eaa5176e9.png", "pvc_argent": "images/img_138_f00f65e617b63ceb.png", "couleur": "images/img_139_8f821bf74abffcba.png", "mix_couleur_bois_pvc": "images/img_140_0b293a0c92543350.png"}, "SUR-MESURE": {"bois": "images/img_120_2b95ac7500715d7a.png", "bois_pvc_or": "images/img_121_a8a5e8f8e7e13c40.png", "bois_pvc_argent": "images/img_122_dfbaf9ebc219df00.png", "pvc_or": "images/img_123_4866107f7dcd2d99.png", "pvc_argent": "images/img_124_41100bdc16798f57.png", "couleur": "images/img_125_b475ef9fbc63a620.png", "mix_couleur_bois_pvc": "images/img_126_42c49a172cfbb8a1.png"}};
+  const PREMIUM_ESCUTCHEON_PRICES = {"bois":0,"bois_pvc_or":4.90,"bois_pvc_argent":4.90,"pvc_or":7.90,"pvc_argent":7.90,"couleur":14.90,"mix_couleur_bois_pvc":14.90};
+
+  let currentRange = null;
+  let currentModel = null;
+  let currentWood = 'clair';
+  let currentMetal = 'argent';
+  let currentEscutcheon = 'bois';
+
+  const rangeCards = document.querySelectorAll('.gamme-card');
+  const modelCollections = document.querySelectorAll('.model-collection');
+  const modelButtons = document.querySelectorAll('.model-choice');
+  const stack = document.getElementById('trophy-stack');
+  const placeholder = document.getElementById('visual-placeholder');
+  const woodLayer = document.getElementById('trophy-wood');
+  const plateLayer = document.getElementById('trophy-plate');
+  const contours = document.getElementById('trophy-contours');
+  const escutcheonLayer = document.getElementById('trophy-escutcheon');
+  const escutcheonGroup = document.getElementById('tradition-escutcheon-group');
+  const premiumEscutcheonGroup = document.getElementById('premium-escutcheon-group');
+  const premiumEscutcheonNote = document.getElementById('premium-escutcheon-note');
+  const modelLabel = document.getElementById('preview-model-label');
+  const title = document.getElementById('options-title');
+  const customDescription = document.getElementById('custom-description');
+
+  function showRange(range){
+    currentRange = range;
+    currentModel = null;
+    window.tacticalSelectedGamme = range;
+    window.tacticalSelectedModel = null;
+
+    rangeCards.forEach(card => card.classList.toggle('selected', card.dataset.gamme === range));
+    modelCollections.forEach(section => section.hidden = section.dataset.gamme !== range);
+    modelButtons.forEach(btn => btn.classList.remove('selected'));
+
+    if (stack) stack.hidden = true;
+    if (placeholder) {
+      placeholder.style.display = 'grid';
+      placeholder.textContent = 'Choisissez maintenant un modèle de la gamme ' + range.charAt(0) + range.slice(1).toLowerCase() + '.';
+    }
+    if (modelLabel) modelLabel.textContent = range + ' — aucun modèle sélectionné';
+    if (title) title.textContent = 'Choisissez votre modèle';
+    if (customDescription) customDescription.hidden = true;
+    currentEscutcheon = 'bois';
+    document.querySelectorAll('[data-escutcheon]').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.escutcheon === 'bois');
+    });
+    if (escutcheonGroup) escutcheonGroup.hidden = true;
+    if (premiumEscutcheonGroup) premiumEscutcheonGroup.hidden = true;
+    if (escutcheonLayer) {
+      escutcheonLayer.hidden = true;
+      escutcheonLayer.removeAttribute('src');
+    }
+  }
+
+  function resetEscutcheonSelection(){
+    currentEscutcheon = 'bois';
+    document.querySelectorAll('[data-escutcheon]').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.escutcheon === 'bois');
+    });
+  }
+
+  function configurePremiumEscutcheonOptions(){
+    if (!premiumEscutcheonGroup) return;
+
+    const assetMap =
+      currentRange === 'HONNEUR' ? HONNEUR_ESCUTCHEONS :
+      currentRange === 'PRESTIGE' ? PRESTIGE_ESCUTCHEONS :
+      null;
+
+    const modelAssets = assetMap && currentModel ? assetMap[currentModel] : null;
+
+    document.querySelectorAll('[data-premium-escutcheon]').forEach(btn => {
+      const key = btn.dataset.escutcheon;
+      const available = !!(modelAssets && modelAssets[key]);
+      btn.disabled = !available;
+      const small = btn.querySelector('[data-option-price]');
+      if (small) {
+        if (!available) {
+          small.textContent = 'Non disponible pour ce modèle';
+        } else {
+          const price = PREMIUM_ESCUTCHEON_PRICES[key] || 0;
+          small.textContent = price === 0 ? 'Inclus' : '+' + price.toFixed(2).replace('.', ',') + ' €';
+        }
+      }
+    });
+
+    // Cas Vitrine : Couleur et Mix restent visibles, mais désactivés avec la mention explicite.
+    if (premiumEscutcheonNote) {
+      premiumEscutcheonNote.textContent =
+        currentRange === 'HONNEUR' && currentModel === 'VITRINE'
+          ? 'Certaines finitions existent dans la gamme Honneur mais ne sont pas disponibles pour le modèle Vitrine.'
+          : 'Choisissez la finition de l’écusson. Le rendu est actualisé directement dans le simulateur.';
+    }
+
+    if (!modelAssets || !modelAssets[currentEscutcheon]) {
+      resetEscutcheonSelection();
+    }
+  }
+
+  function renderModel(){
+    if (!currentRange || !currentModel) return;
+    const a = MODEL_ASSETS[currentRange] && MODEL_ASSETS[currentRange][currentModel];
+    if (!a) return;
+
+    woodLayer.style.webkitMaskImage = `url("${a.mask}")`;
+    woodLayer.style.maskImage = `url("${a.mask}")`;
+    woodLayer.style.backgroundImage = `url("${TEXTURES[currentWood]}")`;
+
+    plateLayer.style.webkitMaskImage = `url("${a.plate}")`;
+    plateLayer.style.maskImage = `url("${a.plate}")`;
+    plateLayer.style.backgroundImage = `url("${TEXTURES[currentMetal]}")`;
+
+    if (window.tacticalApplyModelPlateText) window.tacticalApplyModelPlateText(a.plate);
+
+    contours.src = a.contour;
+    contours.classList.toggle('jpeg-contour', !!a.contourIsJpeg);
+
+    const isTradition = currentRange === 'TRADITION';
+    const isPremium = currentRange === 'HONNEUR' || currentRange === 'PRESTIGE';
+
+    if (escutcheonGroup) escutcheonGroup.hidden = !isTradition;
+    if (premiumEscutcheonGroup) premiumEscutcheonGroup.hidden = !isPremium;
+
+    if (isPremium) configurePremiumEscutcheonOptions();
+
+    if (escutcheonLayer) {
+      let escAsset = null;
+
+      if (isTradition) {
+        escAsset =
+          TRADITION_ESCUTCHEONS[currentModel] &&
+          TRADITION_ESCUTCHEONS[currentModel][currentEscutcheon];
+      } else if (currentRange === 'HONNEUR') {
+        escAsset =
+          HONNEUR_ESCUTCHEONS[currentModel] &&
+          HONNEUR_ESCUTCHEONS[currentModel][currentEscutcheon];
+      } else if (currentRange === 'PRESTIGE') {
+        escAsset =
+          PRESTIGE_ESCUTCHEONS[currentModel] &&
+          PRESTIGE_ESCUTCHEONS[currentModel][currentEscutcheon];
+      }
+
+      if (escAsset) {
+        escutcheonLayer.src = escAsset;
+        escutcheonLayer.hidden = false;
+      } else {
+        escutcheonLayer.hidden = true;
+        escutcheonLayer.removeAttribute('src');
+      }
+    }
+
+    stack.hidden = false;
+    placeholder.style.display = 'none';
+
+    modelLabel.textContent = currentRange + ' — ' + currentModel;
+    title.textContent = currentModel === 'SUR-MESURE' ? 'Sur-mesure' : currentModel.charAt(0) + currentModel.slice(1).toLowerCase();
+
+    // Le champ descriptif est demandé uniquement pour Sur-mesure de la gamme Honneur.
+    customDescription.hidden = !(currentRange === 'HONNEUR' && currentModel === 'SUR-MESURE');
+
+    window.tacticalSelectedGamme = currentRange;
+    window.tacticalSelectedModel = currentModel;
+    window.tacticalWoodFinish = currentWood;
+    window.tacticalPlateFinish = currentMetal;
+    window.tacticalEscutcheonFinish = currentEscutcheon;
+
+    if (currentRange === 'TRADITION') {
+      window.tacticalEscutcheonExtra = currentEscutcheon === 'bois' ? 0 : 4.90;
+      window.tacticalBasePrice = 29.90;
+    } else if (currentRange === 'HONNEUR' || currentRange === 'PRESTIGE') {
+      window.tacticalEscutcheonExtra = PREMIUM_ESCUTCHEON_PRICES[currentEscutcheon] || 0;
+      window.tacticalBasePrice = null;
+    } else {
+      window.tacticalEscutcheonExtra = 0;
+      window.tacticalBasePrice = null;
+    }
+  }
+
+  rangeCards.forEach(card => {
+    card.addEventListener('click', e => {
+      e.preventDefault();
+      showRange(card.dataset.gamme);
+      
+    });
+  });
+
+  modelButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentRange = btn.dataset.gamme;
+      currentModel = btn.dataset.model;
+      modelButtons.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      renderModel();
+      
+    });
+  });
+
+  document.querySelectorAll('[data-wood]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentWood = btn.dataset.wood;
+      document.querySelectorAll('[data-wood]').forEach(b => b.classList.toggle('selected', b === btn));
+      if (currentModel) renderModel();
+    });
+  });
+
+  document.querySelectorAll('[data-metal]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentMetal = btn.dataset.metal;
+      document.querySelectorAll('[data-metal]').forEach(b => b.classList.toggle('selected', b === btn));
+      if (currentModel) renderModel();
+    });
+  });
+
+  document.querySelectorAll('[data-escutcheon]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!currentModel) return;
+
+      const isTraditionButton = !btn.hasAttribute('data-premium-escutcheon');
+      const isPremiumButton = btn.hasAttribute('data-premium-escutcheon');
+
+      if (currentRange === 'TRADITION' && !isTraditionButton) return;
+      if ((currentRange === 'HONNEUR' || currentRange === 'PRESTIGE') && !isPremiumButton) return;
+      if (currentRange !== 'TRADITION' && currentRange !== 'HONNEUR' && currentRange !== 'PRESTIGE') return;
+      if (btn.disabled) return;
+
+      currentEscutcheon = btn.dataset.escutcheon;
+
+      const activeGroup = currentRange === 'TRADITION'
+        ? escutcheonGroup
+        : premiumEscutcheonGroup;
+
+      if (activeGroup) {
+        activeGroup.querySelectorAll('[data-escutcheon]').forEach(b => {
+          b.classList.toggle('selected', b === btn);
+        });
+      }
+
+      renderModel();
+    });
+  });
+
+  const desc = document.getElementById('custom-description-text');
+  if (desc) desc.addEventListener('input', () => window.tacticalCustomDescription = desc.value);
+})();
+</script>
+
+<script id="v8-controller">(()=>{const steps=['collection','modele','ecusson','finitions','plaque','texte'];let si=0;const pb=[...document.querySelectorAll('[data-step-nav]')],back=document.getElementById('config-back-btn');function R(){return window.tacticalSelectedGamme||null}function M(){return window.tacticalSelectedModel||null}function extra(){let x=Number(window.tacticalEscutcheonExtra||0);if(R()==='HONNEUR'&&M()==='SUR-MESURE')x+=9.9;return x}function base(){return R()==='TRADITION'?29.9:R()==='HONNEUR'?49.9:R()==='PRESTIGE'?64.9:null}function summary(){document.getElementById('summary-collection').textContent=R()||'—';document.getElementById('summary-model').textContent=M()||'—';let b=base();document.getElementById('summary-price').textContent=b==null?'—':(b+extra()).toFixed(2).replace('.',',')+' €'}function prog(n){si=Math.max(0,Math.min(5,n));pb.forEach((b,i)=>b.classList.toggle('active',i===si));if(back)back.disabled=si===0;summary()}pb.forEach((b,i)=>b.onclick=()=>prog(i));if(back)back.onclick=()=>prog(si-1);document.querySelectorAll('.gamme-card').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>prog(1),0)));document.querySelectorAll('.model-choice').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>{summary();prog(2)},0)));document.querySelectorAll('[data-premium-escutcheon]').forEach(btn=>btn.addEventListener('click',e=>{if(btn.disabled)return;const r=R(),m=M(),k=btn.dataset.escutcheon,map=r==='HONNEUR'?(typeof HONNEUR_ESCUTCHEONS!=='undefined'?HONNEUR_ESCUTCHEONS:null):r==='PRESTIGE'?(typeof PRESTIGE_ESCUTCHEONS!=='undefined'?PRESTIGE_ESCUTCHEONS:null):null,a=map&&map[m]&&map[m][k];if(!a)return;document.querySelectorAll('[data-premium-escutcheon]').forEach(x=>x.classList.toggle('selected',x===btn));const prices={bois:0,bois_pvc_or:4.9,bois_pvc_argent:4.9,pvc_or:7.9,pvc_argent:7.9,couleur:14.9,mix_couleur_bois_pvc:14.9};window.tacticalEscutcheonFinish=k;window.tacticalEscutcheonExtra=prices[k]||0;const l=document.getElementById('trophy-escutcheon');if(l){l.src=a;l.hidden=false}summary();prog(3)},true));const l1=document.getElementById('plate-line-1'),l2=document.getElementById('plate-line-2'),d1=document.getElementById('plate-date-1'),d2=document.getElementById('plate-date-2'),ov=document.getElementById('trophy-plate-text');function fmt(e){let v=e.value.replace(/\D/g,'').slice(0,8);if(v.length>4)v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);else if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);e.value=v}function txt(){document.getElementById('sim-line-1').textContent=l1.value||'GRADE NOM Prénom';document.getElementById('sim-line-2').textContent=l2.value||'UNITÉ / BRIGADE';document.getElementById('sim-line-3').textContent=(d1.value||'JJ/MM/AAAA')+' - '+(d2.value||'JJ/MM/AAAA');if(ov)ov.hidden=!M()}[l1,l2,d1,d2].forEach(e=>e&&e.addEventListener('input',()=>{if(e===d1||e===d2)fmt(e);txt()}));document.querySelectorAll('[data-metal]').forEach(b=>b.addEventListener('click',()=>{if(ov)ov.hidden=false;prog(5)}));summary();txt();prog(0)})();</script><style id="v8-gallery-css">#realisations-page-v8{min-height:100vh;background:#131A20;color:#fff;padding:16px;box-sizing:border-box}.realisations-mosaic-v8{max-width:1100px;margin:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.realisations-mosaic-v8 img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px}.realisations-head-v8{max-width:1100px;margin:0 auto 15px;display:flex;gap:15px;align-items:center}.realisations-head-v8 button{padding:8px 12px;background:transparent;color:#fff;border:1px solid #555;border-radius:7px}</style><script id="v8-gallery">(()=>{const mq=document.querySelector('#realisations .marquee,.marquee');if(!mq)return;const imgs=[...mq.querySelectorAll('img')];imgs.forEach(i=>{i.style.cursor='pointer';i.tabIndex=0});const page=document.createElement('div');page.id='realisations-page-v8';page.hidden=true;page.innerHTML='<div class="realisations-head-v8"><button type="button">← Retour</button><h2>Nos réalisations</h2></div><div class="realisations-mosaic-v8"></div>';document.body.appendChild(page);const mos=page.querySelector('.realisations-mosaic-v8'),seen=new Set();imgs.forEach(i=>{if(seen.has(i.src))return;seen.add(i.src);mos.appendChild(i.cloneNode())});const hide=[...document.body.children].filter(x=>x!==page&&x.tagName!=='SCRIPT'&&x.tagName!=='STYLE');function open(){hide.forEach(x=>{x.dataset.prev=x.style.display||'';x.style.display='none'});page.hidden=false;scrollTo(0,0)}function close(){page.hidden=true;hide.forEach(x=>x.style.display=x.dataset.prev||'')}page.querySelector('button').onclick=close;document.querySelectorAll('a,button').forEach(e=>{if((e.textContent||'').trim().toLowerCase().includes('nos réalisations'))e.addEventListener('click',x=>{x.preventDefault();open()})});imgs.forEach(i=>{i.onclick=open;i.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}}})})();</script>
+<script id="v9-distinct-config-controller">
+(() => {
+  const page = document.getElementById('configurator-page-v9');
+  if(!page) return;
+
+  const homeBtn = document.getElementById('configurator-home-v9');
+
+  function openConfigurator(){
+    page.hidden = false;
+    page.classList.add('is-open');
+    document.documentElement.classList.add('configurator-open-v9');
+    document.body.classList.add('configurator-open-v9');
+  }
+
+  function closeConfigurator(){
+    page.classList.remove('is-open');
+    page.hidden = true;
+    document.documentElement.classList.remove('configurator-open-v9');
+    document.body.classList.remove('configurator-open-v9');
+  }
+
+  if(homeBtn) homeBtn.addEventListener('click', closeConfigurator);
+
+  // Clics "Configurer" de l'accueil/header/hero.
+  [...document.querySelectorAll('a,button')].forEach(el => {
+    if(page.contains(el)) return;
+    const txt = (el.textContent || '').trim().toLowerCase();
+    const href = (el.getAttribute('href') || '').trim().toLowerCase();
+    if(txt.includes('configurer') || href === '#configurateur'){
+      el.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        openConfigurator();
+      });
+    }
+  });
+
+  // Navigation V9 neutralisée.
+  // V10 gère désormais toute la progression.
+  // Seule la Collection peut avancer automatiquement ; toutes les autres
+  // étapes nécessitent explicitement le bouton Valider.
+})();
+</script>
+
+
+<script id="v10-config-flow">
+(() => {
+  function initV10(){
+    const page = document.getElementById('configurator-page-v9');
+    const section = document.getElementById('configurateur');
+    if(!page || !section || page.classList.contains('v10-ready')) return;
+
+    const direct = Array.from(section.children);
+    const container = direct.find(x => x.classList && x.classList.contains('container'));
+    const full = direct.find(x => x.classList && x.classList.contains('full-configurator'));
+
+    if(!container || !full){
+      console.error('V10: structure du configurateur introuvable');
+      return;
+    }
+
+    const preview = full.querySelector('.preview.trophy-preview');
+    const options = full.querySelector('.options.visual-options');
+    const progress = document.getElementById('config-progress');
+    const summary = document.getElementById('config-live-summary');
+    const cards = container.querySelector('.cards');
+    const tradModels = document.getElementById('tradition-models');
+    const honModels = document.getElementById('honneur-models');
+    const presModels = document.getElementById('prestige-models');
+
+    if(!preview || !options || !progress || !cards || !tradModels){
+      console.error('V10: éléments obligatoires manquants');
+      return;
+    }
+
+    const groups = Array.from(options.children).filter(x => x.classList && x.classList.contains('config-group'));
+    const finishGroup = groups.find(g => g.querySelector('[data-wood]'));
+    const plateGroup = groups.find(g => g.querySelector('[data-metal]'));
+    const tradEsc = document.getElementById('tradition-escutcheon-group');
+    const premEsc = document.getElementById('premium-escutcheon-group');
+    const textGroup = document.getElementById('text-config-group');
+    const customDescription = document.querySelector('[id^="custom-description"]');
+
+    // Ne masquer l'ancienne structure qu'une fois la nouvelle interface totalement construite.
+    const shell = document.createElement('div');
+    shell.className = 'v10-shell';
+
+    const previewWrap = document.createElement('div');
+    previewWrap.className = 'v10-preview';
+    previewWrap.appendChild(preview);
+
+    const statusWrap = document.createElement('div');
+    statusWrap.className = 'v10-status';
+    statusWrap.appendChild(progress);
+    if(summary) statusWrap.appendChild(summary);
+
+    const stage = document.createElement('div');
+    stage.className = 'v10-stage';
+
+    const pages = {};
+    ['collection','modele','ecusson','finitions','plaque','texte'].forEach(name => {
+      const p = document.createElement('div');
+      p.className = 'v10-page';
+      p.dataset.v10Page = name;
+      pages[name] = p;
+      stage.appendChild(p);
+    });
+
+    const collectionTitle = document.createElement('div');
+    collectionTitle.className = 'config-group-title';
+    collectionTitle.textContent = 'Choisissez votre Collection';
+    pages.collection.appendChild(collectionTitle);
+    pages.collection.appendChild(cards);
+
+    const modelTitle = document.createElement('div');
+    modelTitle.className = 'config-group-title';
+    modelTitle.textContent = 'Choisissez votre modèle';
+    pages.modele.appendChild(modelTitle);
+    pages.modele.appendChild(tradModels);
+    if(honModels) pages.modele.appendChild(honModels);
+    if(presModels) pages.modele.appendChild(presModels);
+    if(customDescription) pages.modele.appendChild(customDescription);
+
+    if(tradEsc) pages.ecusson.appendChild(tradEsc);
+    if(premEsc) pages.ecusson.appendChild(premEsc);
+    if(finishGroup) pages.finitions.appendChild(finishGroup);
+    if(plateGroup) pages.plaque.appendChild(plateGroup);
+    if(textGroup) pages.texte.appendChild(textGroup);
+
+    const back = document.createElement('button');
+    back.type = 'button';
+    back.className = 'v10-back';
+    back.textContent = '← Retour';
+    stage.appendChild(back);
+
+    shell.appendChild(previewWrap);
+    shell.appendChild(statusWrap);
+    shell.appendChild(stage);
+    section.appendChild(shell);
+
+    const order = ['collection','modele','ecusson','finitions','plaque','texte'];
+    let current = 0;
+    let maxReached = 0;
+
+    const selectedRange = () =>
+      window.tacticalSelectedGamme ||
+      document.querySelector('.gamme-card.selected')?.dataset.gamme ||
+      '';
+
+    function syncModels(){
+      const r = selectedRange();
+      if(tradModels) tradModels.style.display = r === 'TRADITION' ? '' : 'none';
+      if(honModels) honModels.style.display = r === 'HONNEUR' ? '' : 'none';
+      if(presModels) presModels.style.display = r === 'PRESTIGE' ? '' : 'none';
+    }
+
+    function syncEscutcheons(){
+      const r = selectedRange();
+      if(tradEsc) tradEsc.style.display = r === 'TRADITION' ? '' : 'none';
+      if(premEsc) premEsc.style.display = (r === 'HONNEUR' || r === 'PRESTIGE') ? '' : 'none';
+    }
+
+    function show(index, scroll=true){
+      current = Math.max(0, Math.min(order.length - 1, index));
+      maxReached = Math.max(maxReached, current);
+
+      Object.entries(pages).forEach(([name,p]) => {
+        p.classList.toggle('active', name === order[current]);
+      });
+
+      syncModels();
+      syncEscutcheons();
+
+      Array.from(progress.querySelectorAll('[data-step-nav]')).forEach((b,i) => {
+        b.classList.toggle('active', i === current);
+        b.classList.toggle('done', i < current);
+      });
+
+      back.disabled = current === 0;
+
+      // Aucun déplacement automatique de l'écran.
+      // Le changement d'étape modifie uniquement le contenu affiché.
+    }
+
+    // Permet au panier de recommencer une nouvelle configuration à l'étape Collection.
+    window.tacticalV10GoToCollection = function(){
+      current = 0;
+      maxReached = 0;
+      show(0, false);
+      Array.from(stage.querySelectorAll('.v10-validate')).forEach(btn => {
+        btn.classList.remove('validated');
+        if(btn.classList.contains('v10-validate-final')) btn.textContent = 'Valider';
+      });
+    };
+
+    back.addEventListener('click', e => {
+      e.preventDefault();
+      const previous = current - 1;
+      show(previous, false);
+      const previousPage = pageList[previous];
+      if(previousPage){
+        const validate = previousPage.querySelector('.v10-validate');
+        if(validate){
+          validate.classList.remove('validated');
+          validate.textContent = 'Valider';
+        }
+      }
+    });
+
+    // La barre d'état ne sert qu'à revenir sur une étape déjà atteinte.
+    Array.from(progress.querySelectorAll('[data-step-nav]')).forEach((b,i) => {
+      b.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(i <= maxReached) show(i);
+      }, true);
+    });
+
+    // Collection -> modèle : enchaînement automatique.
+    pages.collection.addEventListener('click', e => {
+      const c = e.target.closest('.gamme-card');
+      if(!c) return;
+      setTimeout(() => {
+        syncModels();
+        show(1);
+      }, 80);
+    });
+
+    // Modèle -> écusson
+    pages.modele.addEventListener('click', e => {
+      const m = e.target.closest('.model-choice');
+      if(!m) return;
+      setTimeout(() => {
+        syncEscutcheons();
+      }, 80);
+    });
+
+    // Écusson / Finitions / Plaque :
+    // le clic modifie uniquement le simulateur.
+    // Le client avance avec le bouton Valider afin de pouvoir comparer les rendus.
+    function addValidateButton(pageNode, nextIndex){
+      if(!pageNode) return;
+      const validate = document.createElement('button');
+      validate.type = 'button';
+      validate.className = 'v10-validate';
+      validate.textContent = 'Valider';
+      validate.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        show(nextIndex);
+      });
+      pageNode.appendChild(validate);
+    }
+
+    addValidateButton(pages.modele, 2);
+    addValidateButton(pages.ecusson, 3);
+    addValidateButton(pages.finitions, 4);
+    addValidateButton(pages.plaque, 5);
+
+    if(pages.texte){
+      const finalValidate = document.createElement('button');
+      finalValidate.type = 'button';
+      finalValidate.className = 'v10-validate v10-validate-final';
+      finalValidate.textContent = 'Valider';
+      finalValidate.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        finalValidate.classList.add('validated');
+        finalValidate.textContent = 'Validé';
+      });
+      pages.texte.appendChild(finalValidate);
+    }
+
+    // Tout est prêt : seulement maintenant on masque l'ancienne structure.
+    page.classList.add('v10-ready');
+    show(0, false);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initV10, {once:true});
+  } else {
+    initV10();
+  }
+
+  // Sécurité : réessayer à l'ouverture de la fenêtre si le navigateur a chargé lentement.
+  document.addEventListener('click', e => {
+    const el = e.target.closest('a,button');
+    if(!el) return;
+    const text = (el.textContent || '').toLowerCase();
+    const href = (el.getAttribute('href') || '').toLowerCase();
+    if(text.includes('configurer') || href === '#configurateur'){
+      initV10();
+    }
+  }, true);
+})();
+</script>
+
+
+<script id="v11-9-configurator-no-scroll-guard">
+(function(){
+  const root=document.getElementById('configurator-page-v9');
+  if(!root) return;
+
+  // Les anciens scripts peuvent encore appeler scrollIntoView sur des éléments
+  // du configurateur. Pendant une interaction dans celui-ci, on neutralise
+  // temporairement ces appels afin que la fenêtre reste exactement en place.
+  let interacting=false;
+  root.addEventListener('pointerdown',()=>{interacting=true;},true);
+  root.addEventListener('click',()=>{setTimeout(()=>{interacting=false;},150);},true);
+
+  const nativeScrollIntoView=Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView=function(){
+    if(interacting && root.contains(this)) return;
+    return nativeScrollIntoView.apply(this,arguments);
+  };
+})();
+</script>
+
+<style id="v12-2-plate-text-style">
+#configurator-page-v9 #trophy-plate-text{
+  position:absolute !important;
+  inset:auto !important;
+  left:var(--plate-text-left,0%) !important;
+  top:var(--plate-text-top,0%) !important;
+  width:var(--plate-text-width,1%) !important;
+  height:var(--plate-text-height,1%) !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  max-width:none !important;
+  max-height:none !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  align-items:center !important;
+  text-align:center !important;
+  pointer-events:none !important;
+  z-index:30 !important;
+  overflow:hidden !important;
+  transform:none !important;
+}
+#configurator-page-v9 #trophy-plate-text[hidden]{display:none !important}
+#configurator-page-v9 #sim-line-1,
+#configurator-page-v9 #sim-line-2,
+#configurator-page-v9 #sim-line-3{
+  display:block !important;
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  line-height:1.08 !important;
+  text-align:center !important;
+}
+</style>
+<script id="v12-2-plate-text-from-model-plate">
+(function(){
+  const box=document.getElementById('trophy-plate-text');
+  if(!box) return;
+  const cache=new Map();
+  let token=0;
+
+  function getBounds(src){
+    if(!src) return Promise.resolve(null);
+    if(cache.has(src)) return Promise.resolve(cache.get(src));
+    return new Promise(resolve=>{
+      const img=new Image();
+      img.onload=()=>{
+        try{
+          const w=img.naturalWidth,h=img.naturalHeight;
+          const c=document.createElement('canvas');
+          c.width=w;c.height=h;
+          const ctx=c.getContext('2d',{willReadFrequently:true});
+          ctx.drawImage(img,0,0,w,h);
+          const d=ctx.getImageData(0,0,w,h).data;
+          let minX=w,minY=h,maxX=-1,maxY=-1;
+          for(let y=0;y<h;y++){
+            for(let x=0;x<w;x++){
+              if(d[(y*w+x)*4+3]>8){
+                if(x<minX)minX=x;if(x>maxX)maxX=x;
+                if(y<minY)minY=y;if(y>maxY)maxY=y;
+              }
+            }
+          }
+          if(maxX<0) return resolve(null);
+          const b={left:minX/w,top:minY/h,width:(maxX-minX+1)/w,height:(maxY-minY+1)/h};
+          cache.set(src,b);resolve(b);
+        }catch(e){resolve(null)}
+      };
+      img.onerror=()=>resolve(null);
+      img.src=src;
+    });
+  }
+
+  function fit(){
+    const lines=['sim-line-1','sim-line-2','sim-line-3'].map(id=>document.getElementById(id)).filter(Boolean);
+    if(!lines.length||!box.clientWidth||!box.clientHeight) return;
+    let size=Math.max(6,Math.min(box.clientHeight*.22,box.clientWidth*.10));
+    lines.forEach(l=>l.style.fontSize=size+'px');
+    for(let i=0;i<45;i++){
+      if(lines.every(l=>l.scrollWidth<=box.clientWidth) && box.scrollHeight<=box.clientHeight) break;
+      size=Math.max(6,size*.94);
+      lines.forEach(l=>l.style.fontSize=size+'px');
+    }
+  }
+
+  async function apply(src){
+    const current=++token;
+    const b=await getBounds(src);
+    if(current!==token||!b) return;
+    const mx=b.width*.075;
+    const my=b.height*.10;
+    box.style.setProperty('--plate-text-left',((b.left+mx)*100)+'%');
+    box.style.setProperty('--plate-text-top',((b.top+my)*100)+'%');
+    box.style.setProperty('--plate-text-width',((b.width-2*mx)*100)+'%');
+    box.style.setProperty('--plate-text-height',((b.height-2*my)*100)+'%');
+    requestAnimationFrame(fit);
+  }
+
+  window.tacticalApplyModelPlateText=apply;
+  window.tacticalFitPlateText=fit;
+  ['plate-line-1','plate-line-2','plate-date-1','plate-date-2'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input',()=>requestAnimationFrame(fit));
+  });
+})();
+</script>
+
+<style id="v13-1-personnalisation-css">
+.v13-color-panel,.v13-engraving{margin-top:18px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.025)}
+.v13-color-panel[hidden]{display:none!important}
+#v13-color-toggle{width:100%!important;min-height:76px!important;box-sizing:border-box!important;background:#d8b85a!important;color:#111!important;border-color:#d8b85a!important;font-weight:800!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#v13-color-toggle:hover{filter:brightness(1.04)}
+#v13-color-toggle.selected{outline:2px solid #fff!important;outline-offset:2px!important}
+.v13-color-grid{display:grid;grid-template-columns:repeat(5,minmax(42px,1fr));gap:9px;margin:12px 0}
+.v13-color{border:1px solid rgba(255,255,255,.22);border-radius:9px;padding:6px;background:transparent;color:#fff;cursor:pointer}.v13-color.selected{outline:2px solid #d8b85a;outline-offset:2px}
+.v13-swatch{display:block;width:100%;aspect-ratio:1;border-radius:6px;border:1px solid rgba(255,255,255,.2);margin-bottom:5px}.v13-color small{font-size:.72rem}
+.v13-help{font-size:.9rem;line-height:1.45;color:rgba(255,255,255,.72);margin:8px 0 12px}
+.v13-plate-info{margin-top:12px;padding:12px;border-left:2px solid rgba(216,184,90,.55);background:rgba(216,184,90,.05);font-size:.86rem;line-height:1.48;color:rgba(255,255,255,.76)}
+.v13-field{display:block;margin-top:12px}#v13-pvc-finish[hidden]{display:none!important}.v13-field input,.v13-field textarea,.v13-field select{width:100%;box-sizing:border-box;margin-top:7px;padding:11px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:#10161b;color:#fff}
+.v13-check,.v13-radio{display:flex;gap:9px;align-items:flex-start;margin:10px 0;line-height:1.35}.v13-sub{margin:10px 0 0 25px;padding:12px;border-left:2px solid rgba(216,184,90,.45)}
+#v13-recap{position:fixed;inset:0;z-index:100000;background:#131A20;color:#fff;overflow:auto;padding:18px;box-sizing:border-box}#v13-recap[hidden]{display:none!important}
+.v13-recap-inner{max-width:1180px;margin:auto}.v13-recap-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.v13-recap-grid{display:grid;grid-template-columns:minmax(340px,1fr) minmax(360px,1fr);gap:24px;align-items:start}
+.v13-recap-visual{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;min-width:0}
+.v13-recap-visual .visual-stage{position:relative!important;width:min(100%,560px)!important;height:auto!important;aspect-ratio:1/1!important;max-width:560px!important;max-height:none!important;margin:auto!important;overflow:hidden!important;display:block!important}
+.v13-recap-visual #visual-placeholder{display:none!important}
+.v13-recap-visual #trophy-stack{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;display:block!important;transform:none!important}
+.v13-recap-visual .trophy-layer{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;transform:none!important}
+.v13-recap-visual img.trophy-layer{object-fit:contain!important;object-position:center center!important}
+.v13-recap-visual .trophy-wood,.v13-recap-visual .trophy-plate{background-position:center!important;background-size:100% 100%!important;background-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important;-webkit-mask-size:100% 100%!important;mask-size:100% 100%!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important}
+#v13-recap #trophy-plate-text{position:absolute!important;inset:auto!important;left:var(--plate-text-left,0%)!important;top:var(--plate-text-top,0%)!important;width:var(--plate-text-width,1%)!important;height:var(--plate-text-height,1%)!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;overflow:hidden!important;transform:none!important;z-index:30!important}
+#v13-recap #sim-line-1,#v13-recap #sim-line-2,#v13-recap #sim-line-3{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important;white-space:nowrap!important;overflow:hidden!important;text-align:center!important;line-height:1.08!important}
+.v13-recap-details{border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px}.v13-row{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.08)}.v13-row strong{display:block;color:rgba(255,255,255,.62);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.v13-fees{margin-top:18px;padding:14px;border:1px solid rgba(216,184,90,.28);border-radius:10px;background:rgba(216,184,90,.04)}.v13-fees-title{font-weight:800;margin-bottom:7px;color:#d8b85a}.v13-fee-line{display:flex;justify-content:space-between;gap:14px;padding:5px 0;font-size:.92rem}
+.v13-total{margin-top:16px;padding-top:14px;border-top:1px solid rgba(216,184,90,.45);font-size:1.1rem}.v13-total-line{display:flex;justify-content:space-between;gap:16px;padding:5px 0}.v13-grand{font-size:1.35rem;font-weight:700}
+.v13-disclaimer{margin-top:16px;font-size:.82rem;line-height:1.45;color:rgba(255,255,255,.62)}.v13-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.v13-actions button{padding:12px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.2);cursor:pointer}.v13-primary{background:#d8b85a;color:#111;border-color:#d8b85a!important}.v13-secondary{background:transparent;color:#fff}
+@media(max-width:800px){.v13-recap-grid{grid-template-columns:1fr}.v13-color-grid{grid-template-columns:repeat(3,1fr)}.v13-recap-visual{display:block!important}.v13-recap-visual .visual-stage{width:min(100%,380px)!important;max-width:380px!important;aspect-ratio:1/1!important}}
+</style>
+<script id="v13-1-personnalisation-controller">
+(function(){
+ function ready(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn,{once:true});else setTimeout(fn,0)}
+ ready(function(){
+  const page=document.getElementById('configurator-page-v9');if(!page)return;
+  const finishPage=page.querySelector('[data-v10-page="finitions"]'),textPage=page.querySelector('[data-v10-page="texte"]'),wood=document.getElementById('trophy-wood');
+  if(!finishPage||!textPage||!wood)return;
+
+  const finishGroup=finishPage.querySelector('.config-group')||finishPage;
+  const colorButton=document.createElement('button');colorButton.type='button';colorButton.className='visual-choice';colorButton.id='v13-color-toggle';colorButton.textContent='Couleur';
+  const choiceGrid=finishGroup.querySelector('.choice-grid');if(choiceGrid)choiceGrid.appendChild(colorButton);else finishGroup.appendChild(colorButton);
+  const colors=[['Noir','#171717'],['Gris','#777b7e'],['Blanc','#eeeae0'],['Bleu foncé','#17324d'],['Bleu clair','#5f9fc5'],['Rouge','#8f2424'],['Vert olive','#667044'],['Bordeaux','#652b38'],['Beige / sable','#b6a27e'],['Vert forêt','#294d3a']];
+  const panel=document.createElement('div');panel.className='v13-color-panel';panel.hidden=true;
+  panel.innerHTML='<div class="config-group-title">Choisissez une couleur</div><p class="v13-help"><strong>La finition couleur est sans supplément.</strong> Sélectionnez une teinte pour la visualiser. Si la couleur souhaitée n’est pas proposée, indiquez-la ci-dessous. Vous pouvez également préciser une nuance particulière ou demander un dégradé.</p><div class="v13-color-grid"></div><label class="v13-field">Couleur personnalisée / précisions<textarea id="v13-color-note" rows="3" placeholder="Ex. : bleu nuit légèrement grisé, nuance RAL, dégradé noir vers rouge sombre…"></textarea></label>';
+  finishGroup.appendChild(panel);
+  const cg=panel.querySelector('.v13-color-grid');
+  colors.forEach(([name,value])=>{const b=document.createElement('button');b.type='button';b.className='v13-color';b.dataset.color=value;b.dataset.colorName=name;b.innerHTML='<span class="v13-swatch" style="background:'+value+'"></span><small>'+name+'</small>';cg.appendChild(b)});
+  const colorState={active:false,value:null,name:null};
+  function applyColor(value,name){if(!value)return;colorState.active=true;colorState.value=value;colorState.name=name||'Couleur personnalisée';window.tacticalWoodFinish='couleur';window.tacticalFinishColor=value;window.tacticalFinishColorName=colorState.name;wood.style.backgroundImage='none';wood.style.backgroundColor=value;page.querySelectorAll('[data-wood]').forEach(b=>b.classList.remove('selected'));colorButton.classList.add('selected')}
+  function restoreColorAfterRender(){if(colorState.active&&colorState.value)setTimeout(()=>applyColor(colorState.value,colorState.name),60)}
+  colorButton.addEventListener('click',()=>{panel.hidden=false;page.querySelectorAll('[data-wood]').forEach(b=>b.classList.remove('selected'));colorButton.classList.add('selected');if(colorState.value)applyColor(colorState.value,colorState.name)});
+  cg.addEventListener('click',e=>{const b=e.target.closest('.v13-color');if(!b)return;cg.querySelectorAll('.v13-color').forEach(x=>x.classList.toggle('selected',x===b));applyColor(b.dataset.color,b.dataset.colorName)});
+  page.querySelectorAll('[data-wood]').forEach(b=>b.addEventListener('click',()=>{panel.hidden=true;colorButton.classList.remove('selected');colorState.active=false;colorState.value=null;colorState.name=null;window.tacticalFinishColor=null;window.tacticalFinishColorName=null},true));
+  page.querySelectorAll('[data-metal],[data-escutcheon],.model-choice').forEach(b=>b.addEventListener('click',restoreColorAfterRender));
+
+  const textGroup=page.querySelector('#text-config-group');
+  if(textGroup){const plateForm=textGroup.querySelector('.plate-form')||textGroup;const customPlate=document.createElement('div');customPlate.innerHTML='<label class="v13-field">Demande personnalisée / précisions<textarea id="v13-plate-free-note" rows="3" placeholder="Si les champs proposés ne correspondent pas à votre besoin, décrivez ici le texte et la présentation souhaités."></textarea></label><div class="v13-plate-info"><strong>Lisibilité de la plaque :</strong> la police d’écriture et sa taille seront adaptées lors de la mise en page afin de garantir un résultat clairement lisible, équilibré et esthétique.<br><br><strong>À propos du simulateur :</strong> le visuel présenté est une projection indicative de la personnalisation. Le positionnement, les proportions et la mise en page peuvent être légèrement ajustés lors de la préparation finale afin d’obtenir le meilleur rendu sur le trophée fabriqué.</div>';plateForm.appendChild(customPlate)}
+
+  const engr=document.createElement('div');engr.className='config-group v13-engraving';engr.id='v13-engraving';
+  engr.innerHTML=`<div class="config-group-title">Gravures personnalisées</div>
+  <p class="v13-help">Les gravures réalisées directement sur le trophée sont sans supplément.</p>
+  <label class="v13-check"><input type="checkbox" id="v13-front-on"><span><strong>Gravure sur la face avant</strong><br><small>Texte, symbole ou motif gravé directement sur la face avant du trophée — sans supplément.</small></span></label>
+  <div class="v13-sub" id="v13-front-box" hidden><label class="v13-field">Description de la gravure avant<textarea id="v13-front-note" rows="3" placeholder="Indiquez le texte, le motif et l’emplacement souhaités."></textarea></label></div>
+  <div style="margin-top:18px"><strong>Personnalisation au dos</strong></div>
+  <label class="v13-radio"><input type="radio" name="v13-back" value="none" checked><span>Aucune gravure au dos</span></label>
+  <label class="v13-radio"><input type="radio" name="v13-back" value="direct"><span><strong>Gravure directe au dos — Bois</strong> — sans supplément<br><small>Personnalisation gravée directement dans le bois du trophée. Aucune finition PVC Or ou Argent ne s’applique à cette option.</small></span></label>
+  <label class="v13-radio"><input type="radio" name="v13-back" value="wood"><span><strong>Gravure en relief au dos — Bois</strong> — +4,90 €<br><small>Personnalisation gravée sur une épaisseur de bois supplémentaire puis rapportée au dos.</small></span></label>
+  <label class="v13-radio"><input type="radio" name="v13-back" value="pvc"><span><strong>Gravure en relief au dos — PVC</strong> — +7,90 €<br><small>Personnalisation gravée sur une pièce de PVC finition Or ou Argent puis rapportée au dos.</small></span></label>
+  <div class="v13-sub" id="v13-back-box" hidden><label class="v13-field">Description de la personnalisation au dos<textarea id="v13-back-note" rows="3" placeholder="Indiquez le texte, le motif et toute précision utile."></textarea></label><label class="v13-field" id="v13-pvc-finish" hidden>Finition de la pièce PVC<select id="v13-pvc-select"><option value="Or">PVC Or</option><option value="Argent">PVC Argent</option></select></label></div>`;
+  const finalBtn=textPage.querySelector('.v10-validate-final');if(finalBtn)textPage.insertBefore(engr,finalBtn);else textPage.appendChild(engr);
+  const frontOn=engr.querySelector('#v13-front-on'),frontBox=engr.querySelector('#v13-front-box'),backBox=engr.querySelector('#v13-back-box'),pvcFinish=engr.querySelector('#v13-pvc-finish');
+  frontOn.addEventListener('change',()=>frontBox.hidden=!frontOn.checked);
+  function syncBackPersonalisation(){const v=engr.querySelector('input[name="v13-back"]:checked')?.value||'none';backBox.hidden=v==='none';const showPvc=v==='pvc';pvcFinish.hidden=!showPvc;pvcFinish.style.display=showPvc?'block':'none'}engr.querySelectorAll('input[name="v13-back"]').forEach(r=>r.addEventListener('change',syncBackPersonalisation));syncBackPersonalisation();
+
+  const recap=document.createElement('div');recap.id='v13-recap';recap.hidden=true;recap.innerHTML=`<div class="v13-recap-inner">
+  <div class="v13-recap-head"><h2>Récapitulatif de votre configuration</h2></div>
+  <div class="v13-recap-grid"><div class="v13-recap-visual" id="v13-recap-visual"></div><div class="v13-recap-details" id="v13-recap-details"></div></div>
+  <section id="v14-cart" class="v14-cart" aria-live="polite">
+    <div class="v14-cart-head"><div><div class="eyebrow">Panier de commande</div><h3>Vos trophées</h3></div><span id="v14-cart-count" class="v14-cart-count">1 trophée</span></div>
+    <div id="v14-cart-items" class="v14-cart-items"></div>
+    <div id="v14-discount-info" class="v14-discount-info" hidden></div>
+    <div class="v14-cart-breakdown">
+      <div><span>Sous-total trophées</span><strong id="v14-cart-subtotal-value">—</strong></div>
+      <div id="v14-cart-discount-row" hidden><span id="v14-cart-discount-label">Remise multi-trophées</span><strong id="v14-cart-discount-value">—</strong></div>
+      <div><span>Livraison</span><strong id="v14-cart-shipping-value">3,90 €</strong></div>
+    </div>
+    <div class="v14-cart-total"><span>Total indicatif de la commande</span><strong id="v14-cart-total-value">—</strong></div>
+  </section>
+  <div class="v14-cart-actions">
+    <button type="button" class="v13-secondary" id="v14-add-trophy">+ Ajouter un trophée</button>
+    <button type="button" class="v13-primary" id="v14-pass-order">Passer commande</button>
+  </div>
+  <div id="v14-checkout-modal" class="v14-checkout-modal" hidden>
+    <div class="v14-checkout-window" role="dialog" aria-modal="true" aria-labelledby="v14-checkout-title">
+      <div class="v14-checkout-head">
+        <h2 id="v14-checkout-title">Formulaire de commande</h2>
+        <button type="button" class="v13-secondary" id="v14-close-checkout">← Retour au panier</button>
+      </div>
+  <form id="v14-basin-form" class="v14-basin-form" enctype="multipart/form-data" novalidate>
+    <div class="v14-form-title"><div class="eyebrow">Votre demande</div><h3>Coordonnées et envoi</h3><p>Renseignez vos coordonnées puis transmettez votre demande à Tactical Design. Aucun paiement n'est demandé à cette étape.</p></div>
+    <input type="hidden" name="email_subject" id="v14-email-subject">
+    <textarea name="recapitulatif_commande" id="v14-order-summary" hidden></textarea>
+    <input type="hidden" name="collection" id="v14-collection">
+    <input type="hidden" name="modele" id="v14-modele">
+    <input type="hidden" name="total_commande" id="v14-total">
+    <div class="v14-fields">
+      <label><span>Prénom *</span><input name="prenom" id="v14-prenom" autocomplete="given-name" required></label>
+      <label><span>Nom *</span><input name="nom" id="v14-nom" autocomplete="family-name" required></label>
+      <label class="v14-wide"><span>Adresse *</span><input name="adresse" autocomplete="street-address" required></label>
+      <label class="v14-wide"><span>Complément d'adresse</span><input name="complement" autocomplete="address-line2"></label>
+      <label><span>Code postal *</span><input name="code_postal" inputmode="numeric" autocomplete="postal-code" required></label>
+      <label><span>Ville *</span><input name="ville" autocomplete="address-level2" required></label>
+      <label><span>Téléphone *</span><input name="telephone" type="tel" autocomplete="tel" required></label>
+      <label><span>E-mail *</span><input name="email" type="email" autocomplete="email" required></label>
+      <label class="v14-wide"><span>Demande particulière / précisions</span><textarea name="demande_particuliere" rows="4" placeholder="Ajoutez ici toute information utile concernant votre commande."></textarea></label>
+      <label class="v14-wide v14-file"><span>Fichiers écussons / logos</span><input name="fichier_ecusson_logo" type="file" multiple accept="image/*,.pdf,.svg,.ai,.eps"><small>PNG, JPG, PDF, SVG ou fichier vectoriel si disponible.</small></label>
+      <label class="v14-wide v14-file"><span>Fichiers complémentaires</span><input name="fichier_complementaire" type="file" multiple accept="image/*,.pdf,.svg,.ai,.eps"><small>Facultatif — second écusson, logo, exemple ou document utile.</small></label>
+    </div>
+    <label class="v14-consent"><input type="checkbox" id="v14-consent" required><span>Je confirme l'exactitude des informations transmises et comprends que cette demande sera vérifiée par Tactical Design avant fabrication.</span></label>
+    <div class="v14-submit-row"><button type="submit" id="v14-submit">Envoyer ma demande</button><div id="v14-status" class="v14-status" aria-live="polite"></div></div>
+  </form>
+    </div>
+  </div>
+  <div class="v13-actions"><button type="button" class="v13-secondary" id="v13-recap-back">← Modifier ma configuration</button></div>
+</div>`;document.body.appendChild(recap);
+
+  function money(n){return Number(n).toFixed(2).replace('.',',')+' €'}
+  function val(id){return (document.getElementById(id)?.value||'').trim()}
+  function escData(){
+    const range=window.tacticalSelectedGamme||'';
+    if(range==='HONNEUR' && (window.tacticalClientEscutcheon===true || window.tacticalClientEscutcheonSelected===true)){
+      return {key:'client',label:'Écusson fourni par le client',extra:-5.9};
+    }
+    const key=window.tacticalEscutcheonFinish||'bois';
+    const tradition={bois:'Écusson bois',bois_pvc_or:'Bois / PVC Or brossé',bois_pvc_argent:'Bois / PVC Argent brossé',pvc_or:'PVC Or brossé',pvc_argent:'PVC Argent brossé'};
+    const premium={bois:'Gravure bois',bois_pvc_or:'Bois / PVC Or brossé',bois_pvc_argent:'Bois / PVC Argent brossé',pvc_or:'PVC Or brossé',pvc_argent:'PVC Argent brossé',couleur:'Couleur',mix_couleur_bois_pvc:'Mix Couleur / Bois / PVC',client:'Écusson fourni par le client'};
+    return {key,label:(range==='TRADITION'?tradition[key]:premium[key])||key,extra:Number(window.tacticalEscutcheonExtra||0)};
+  }
+  function woodLabel(){if(colorState.active)return 'Couleur'+(colorState.name?' — '+colorState.name:'');const b=page.querySelector('[data-wood].selected');return b?(b.textContent||'').replace(/\s+/g,' ').trim():'—'}
+  function metalLabel(){const key=window.tacticalPlateFinish||'';if(key==='or')return 'Or';if(key==='argent')return 'Argent';const b=page.querySelector('[data-metal].selected');return b?(b.textContent||'').replace(/\s+/g,' ').trim():'—'}
+  function backData(){const v=engr.querySelector('input[name="v13-back"]:checked')?.value||'none';if(v==='direct')return ['Gravure directe au dos',0];if(v==='wood')return ['Gravure en relief au dos — Bois',4.9];if(v==='pvc')return ['Gravure en relief au dos — PVC '+val('v13-pvc-select'),7.9];return ['Aucune',0]}
+  function escHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function row(k,v){return '<div class="v13-row"><strong>'+escHtml(k)+'</strong><span>'+escHtml(v||'—')+'</span></div>'}
+  function feeLine(name,amount){const sign=amount<0?'−':'+';return '<div class="v13-fee-line"><span>'+escHtml(name)+'</span><strong>'+sign+money(Math.abs(amount))+'</strong></div>'}
+
+  function openRecap(){
+   if(colorState.active&&colorState.value)applyColor(colorState.value,colorState.name);
+   const visual=recap.querySelector('#v13-recap-visual');visual.innerHTML='';const stage=page.querySelector('.visual-stage');
+   if(stage){const clone=stage.cloneNode(true);clone.removeAttribute('hidden');const stack=clone.querySelector('#trophy-stack');if(stack){stack.hidden=false;stack.style.display='block'}const ph=clone.querySelector('#visual-placeholder');if(ph)ph.style.display='none';visual.appendChild(clone)}
+   const r=window.tacticalSelectedGamme||'—',m=window.tacticalSelectedModel||'—',base=r==='TRADITION'?29.9:r==='HONNEUR'?49.9:r==='PRESTIGE'?64.9:0,ed=escData(),bd=backData(),surMesure=(r==='HONNEUR'&&m==='SUR-MESURE')?9.9:0,extras=ed.extra+bd[1]+surMesure,shipping=3.9,total=base+extras+shipping;
+   const plate=[val('plate-line-1'),val('plate-line-2'),[val('plate-date-1'),val('plate-date-2')].filter(Boolean).join(' - ')].filter(Boolean).join(' · ');
+   let h=row('Collection',r)+row('Modèle',m)+row('Écusson',ed.label)+row('Finition du trophée',woodLabel());
+   if(colorState.active){h+=row('Couleur sélectionnée',colorState.name||'Couleur');const colorNote=val('v13-color-note');if(colorNote)h+=row('Précisions de finition',colorNote)}
+   h+=row('Plaque nominative',metalLabel())+row('Texte de la plaque',plate||'À préciser');const plateFree=val('v13-plate-free-note');if(plateFree)h+=row('Demande personnalisée pour la plaque',plateFree);
+   h+=row('Gravure face avant',frontOn.checked?(val('v13-front-note')||'Oui — description à préciser'):'Aucune')+row('Personnalisation au dos',bd[0]);if(bd[0]!=='Aucune')h+=row('Description au dos',val('v13-back-note')||'À préciser');
+   const custom=val('custom-description-text');if(custom)h+=row('Description sur-mesure',custom);
+   const fees=[];if(ed.extra!==0)fees.push([`Écusson — ${ed.label}`,ed.extra]);if(surMesure>0)fees.push(['Modèle Honneur Sur-mesure',surMesure]);if(bd[1]>0)fees.push([bd[0],bd[1]]);
+   h+='<div class="v13-fees"><div class="v13-fees-title">Détail des frais supplémentaires</div>'+(fees.length?fees.map(f=>feeLine(f[0],f[1])).join(''):'<div class="v13-help">Aucun supplément lié aux options sélectionnées.</div>')+'</div>';
+   h+='<div class="v13-total"><div class="v13-total-line"><span>Prix de base — '+escHtml(r)+'</span><span>'+money(base)+'</span></div>'+(extras>0?'<div class="v13-total-line"><span>Suppléments</span><span>'+money(extras)+'</span></div>':'')+'<div class="v13-total-line"><span>Livraison</span><span>'+money(shipping)+'</span></div><div class="v13-total-line v13-grand"><span>Total</span><span>'+money(total)+'</span></div></div>';
+   h+='<div class="v13-disclaimer">Le visuel du simulateur constitue une projection indicative. La police, sa taille, le positionnement et certaines proportions pourront être ajustés lors de la préparation afin de garantir une personnalisation clairement lisible, équilibrée et esthétique.</div>';
+   recap.querySelector('#v13-recap-details').innerHTML=h;
+   window.v14CurrentOrder={collection:r,model:m,total:total,base:base,extras:extras,shipping:shipping};
+   const f=recap.querySelector('#v14-basin-form');
+   if(f){
+     f.querySelector('#v14-collection').value=r;
+     f.querySelector('#v14-modele').value=m;
+     f.querySelector('#v14-total').value=money(total);
+     updateV14BasinFields();
+   }
+   if(typeof renderV14Cart==='function')renderV14Cart();
+   recap.hidden=false;page.hidden=true;
+  }
+  recap.querySelector('#v13-recap-back').addEventListener('click',()=>{recap.hidden=true;page.hidden=false;restoreColorAfterRender()});
+  if(finalBtn){finalBtn.textContent='Finaliser ma configuration';const clone=finalBtn.cloneNode(true);finalBtn.replaceWith(clone);clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openRecap()})}
+ });
+})();
+</script>
+
+
+<style id="v13-2-gallery-descriptions-css">
+#realisations-page-v8 .realisations-mosaic-v8 .v13-2-realisation{
+  position:relative;
+  width:100%;
+  aspect-ratio:3/4;
+  overflow:hidden;
+  border-radius:8px;
+  cursor:default;
+  background:transparent;
+}
+#realisations-page-v8 .realisations-mosaic-v8 .v13-2-realisation > img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  aspect-ratio:auto;
+  object-fit:cover;
+  border-radius:8px;
+}
+#realisations-page-v8 .v13-2-realisation-info{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  padding:18px;
+  box-sizing:border-box;
+  background:linear-gradient(to top,rgba(8,12,16,.94) 0%,rgba(8,12,16,.68) 38%,rgba(8,12,16,.12) 72%,transparent 100%);
+  color:#fff;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .18s ease,visibility .18s ease;
+  pointer-events:none;
+}
+#realisations-page-v8 .v13-2-realisation-info strong{
+  display:block;
+  font-size:1.08rem;
+  line-height:1.15;
+  margin:0 0 5px;
+  text-transform:uppercase;
+}
+#realisations-page-v8 .v13-2-realisation-info span{
+  display:block;
+  color:#f0c75e;
+  font-size:.86rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+@media (hover:hover) and (pointer:fine){
+  #realisations-page-v8 .v13-2-realisation:hover .v13-2-realisation-info,
+  #realisations-page-v8 .v13-2-realisation:focus-within .v13-2-realisation-info{
+    opacity:1;
+    visibility:visible;
+  }
+}
+@media (hover:none), (pointer:coarse){
+  #realisations-page-v8 .v13-2-realisation{
+    cursor:pointer;
+  }
+  #realisations-page-v8 .v13-2-realisation.v13-2-open .v13-2-realisation-info{
+    opacity:1;
+    visibility:visible;
+  }
+}
+</style>
+
+<script id="v13-2-gallery-descriptions">
+(function(){
+  function enhance(){
+    const mosaic=document.querySelector('#realisations-page-v8 .realisations-mosaic-v8');
+    if(!mosaic || mosaic.dataset.v132Descriptions==='1') return;
+    mosaic.dataset.v132Descriptions='1';
+
+    [...mosaic.children].forEach(node=>{
+      if(node.classList && node.classList.contains('v13-2-realisation')) return;
+      if(!(node instanceof HTMLImageElement)) return;
+
+      const raw=(node.getAttribute('alt')||'').trim();
+      const parts=raw.split(/\s+[—–-]\s+/);
+      const model=(parts[0]||'Modèle').trim();
+      const collection=(parts[1]||'').trim();
+
+      const wrap=document.createElement('div');
+      wrap.className='v13-2-realisation';
+      wrap.tabIndex=0;
+      wrap.setAttribute('role','button');
+      wrap.setAttribute('aria-expanded','false');
+      wrap.setAttribute('aria-label',collection ? model+', collection '+collection : model);
+
+      const info=document.createElement('div');
+      info.className='v13-2-realisation-info';
+      info.innerHTML='<strong></strong><span></span>';
+      info.querySelector('strong').textContent=model;
+      info.querySelector('span').textContent=collection ? 'Collection '+collection : '';
+
+      mosaic.insertBefore(wrap,node);
+      wrap.appendChild(node);
+      wrap.appendChild(info);
+
+      function toggle(e){
+        if(!matchMedia('(hover:none), (pointer:coarse)').matches) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const willOpen=!wrap.classList.contains('v13-2-open');
+        mosaic.querySelectorAll('.v13-2-realisation.v13-2-open').forEach(x=>{
+          if(x!==wrap){x.classList.remove('v13-2-open');x.setAttribute('aria-expanded','false')}
+        });
+        wrap.classList.toggle('v13-2-open',willOpen);
+        wrap.setAttribute('aria-expanded',willOpen?'true':'false');
+      }
+      wrap.addEventListener('click',toggle);
+      wrap.addEventListener('keydown',e=>{
+        if((e.key==='Enter'||e.key===' ') && matchMedia('(hover:none), (pointer:coarse)').matches) toggle(e);
+      });
+    });
+
+    document.addEventListener('click',e=>{
+      if(!matchMedia('(hover:none), (pointer:coarse)').matches) return;
+      if(e.target.closest('#realisations-page-v8 .v13-2-realisation')) return;
+      mosaic.querySelectorAll('.v13-2-realisation.v13-2-open').forEach(x=>{
+        x.classList.remove('v13-2-open');
+        x.setAttribute('aria-expanded','false');
+      });
+    });
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',enhance,{once:true});
+  else enhance();
+
+  /* Le bloc V8 construit la galerie au chargement ; ce second passage couvre tout ordre d'exécution. */
+  setTimeout(enhance,0);
+})();
+</script>
+
+
+<style id="v13-3-client-escutcheon-css">
+#v13-3-client-escutcheon[hidden],
+#v13-3-client-escutcheon-note[hidden]{display:none!important}
+#v13-3-client-escutcheon small{color:#f0c75e;font-weight:800}
+#v13-3-client-escutcheon.selected small{color:inherit}
+#v13-3-client-escutcheon-note{
+  margin-top:12px;
+  padding:12px 14px;
+  border-left:3px solid #d8b85a;
+  border-radius:6px;
+  background:rgba(216,184,90,.06);
+  color:rgba(255,255,255,.82);
+  font-size:.9rem;
+  line-height:1.45;
+}
+</style>
+
+<script id="v13-3-client-escutcheon-controller">
+(function(){
+ function ready(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn,{once:true});else setTimeout(fn,0)}
+ ready(function(){
+  const page=document.getElementById('configurator-page-v9');
+  const group=document.getElementById('premium-escutcheon-group');
+  if(!page||!group)return;
+
+  const grid=group.querySelector('.escutcheon-choice-grid')||group.querySelector('.choice-grid');
+  if(!grid)return;
+
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.id='v13-3-client-escutcheon';
+  btn.className='visual-choice';
+  btn.setAttribute('data-escutcheon','client');
+  btn.innerHTML='<strong>J’envoie mon propre écusson</strong><small>−5,90 €</small>';
+  btn.hidden=true;
+  grid.appendChild(btn);
+
+  const note=document.createElement('div');
+  note.id='v13-3-client-escutcheon-note';
+  note.hidden=true;
+  note.textContent='L’adresse de livraison pour l’envoi de votre écusson vous sera communiquée par e-mail lors de la validation du projet. La taille réelle de l’écusson pouvant différer des proportions prévues sur le modèle, une adaptation de sa mise en place pourra être nécessaire afin de préserver l’équilibre et l’harmonie du trophée. Un écusson physique ne pouvant pas être agrandi, certains ajustements du support ou de la composition pourront être proposés. Un échange par e-mail sera donc nécessaire afin de vérifier les dimensions de votre écusson et de préparer au mieux votre projet avant fabrication.';
+  group.appendChild(note);
+
+  function range(){return String(window.tacticalSelectedGamme||'').toUpperCase()}
+  function refreshAvailability(){
+    const honneur=range()==='HONNEUR';
+    btn.hidden=!honneur;
+    if(!honneur){
+      note.hidden=true;
+      btn.classList.remove('selected');
+      if(window.tacticalClientEscutcheon){
+        window.tacticalClientEscutcheon=false;
+        window.tacticalClientEscutcheonSelected=false;
+        if(window.tacticalEscutcheonFinish==='client')window.tacticalEscutcheonFinish='bois';
+        window.tacticalEscutcheonExtra=0;
+        const layer=document.getElementById('trophy-escutcheon');
+        if(layer)layer.style.display='';
+      }
+    }
+  }
+
+  function selectClient(){
+    if(range()!=='HONNEUR')return;
+    group.querySelectorAll('[data-escutcheon]').forEach(x=>x.classList.remove('selected'));
+    btn.classList.add('selected');
+    note.hidden=false;
+    window.tacticalClientEscutcheon=true;
+    window.tacticalClientEscutcheonSelected=true;
+    window.tacticalEscutcheonFinish='client';
+    window.tacticalEscutcheonExtra=-5.9;
+
+    /* Aucun calque spécifique n'est simulé : le client fournira physiquement son écusson. */
+    const layer=document.getElementById('trophy-escutcheon');
+    if(layer)layer.style.display='none';
+
+    /* Les résumés existants se recalculent lors des interactions suivantes ; on émet aussi un événement neutre. */
+    page.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+
+  btn.addEventListener('click',function(e){
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    selectClient();
+  },true);
+
+  /* Une autre finition d'écusson réactive le comportement normal. */
+  group.querySelectorAll('[data-premium-escutcheon]').forEach(other=>{
+    other.addEventListener('click',()=>{
+      window.tacticalClientEscutcheon=false;
+      window.tacticalClientEscutcheonSelected=false;
+      note.hidden=true;
+      btn.classList.remove('selected');
+      const layer=document.getElementById('trophy-escutcheon');
+      if(layer)layer.style.display='';
+    },true);
+  });
+
+  /* Le groupe premium sert aussi à Prestige : le bouton reste donc masqué hors Honneur. */
+  page.querySelectorAll('.gamme-card').forEach(card=>card.addEventListener('click',()=>setTimeout(refreshAvailability,120),true));
+  page.querySelectorAll('.model-choice').forEach(card=>card.addEventListener('click',()=>setTimeout(refreshAvailability,120),true));
+
+  /* Les anciens contrôleurs peuvent recalculer l'écusson lors des étapes suivantes.
+     Le choix "écusson client" reste prioritaire tant que le client n'a pas choisi une autre option. */
+  page.addEventListener('click',()=>{
+    if(range()==='HONNEUR' && window.tacticalClientEscutcheonSelected===true){
+      setTimeout(()=>{
+        window.tacticalClientEscutcheon=true;
+        window.tacticalEscutcheonFinish='client';
+        window.tacticalEscutcheonExtra=-5.9;
+        btn.classList.add('selected');
+        note.hidden=false;
+        const layer=document.getElementById('trophy-escutcheon');
+        if(layer)layer.style.display='none';
+      },90);
+    }
+  },false);
+
+  /* Couvre également la navigation Retour et les changements effectués par le contrôleur V10. */
+  const observer=new MutationObserver(refreshAvailability);
+  observer.observe(group,{attributes:true,attributeFilter:['hidden']});
+  refreshAvailability();
+ });
+})();
+</script>
+
+<div id="processus-page-v13-6" aria-hidden="true">
+<div class="processus-page-v13-6-inner">
+<button type="button" id="close-processus-page-v13-6">← Retour</button>
+<section id="process" class="section"><div class="container">
+<div class="section-head"><div><div class="eyebrow">Votre commande</div><h2>Un processus simple</h2></div></div>
+<div class="process v13-7-process">
+<div><span>01</span><strong>Configurez votre trophée</strong>
+<p>Utilisez <a href="#configurateur" id="v13-7-configurator-link">notre outil de configuration</a> pour définir le modèle et les principales options de votre trophée.</p>
+<p>Le visuel généré constitue une projection destinée à vous donner une idée générale du résultat. Le trophée fabriqué peut présenter certaines différences de proportions, de positionnement ou de rendu liées aux contraintes de fabrication et à la personnalisation réelle.</p>
+<p>Lorsque vous finalisez votre configuration, votre demande nous est transmise puis traitée avec vous par e-mail. <b>Aucun paiement immédiat n’est demandé à l’issue du configurateur.</b></p></div>
+<div><span>02</span><strong>Nous vérifions et préparons votre projet</strong>
+<p>Nous vérifions la faisabilité de votre demande et retravaillons si nécessaire les éléments graphiques afin de les adapter au modèle choisi et d’obtenir un résultat harmonieux.</p>
+<p>Cette étape permet notamment d’adapter votre écusson, sa composition et son niveau de détail aux contraintes de gravure et de fabrication.</p>
+<div class="v13-8-process-gallery" aria-label="Exemples de préparation et de fabrication">
+<div class="v13-8-process-pair"><figure class="v13-8-process-figure">
+  <div class="v13-8-process-image-wrap">
+    <img src="images/img_141_4beb914881a0e7fd.png" alt="PHOTO DE L’ÉCUSSON" loading="lazy">
+  </div>
+  <figcaption><strong>PHOTO DE L’ÉCUSSON</strong><span>Visuel fourni par le client</span></figcaption>
+</figure><figure class="v13-8-process-figure">
+  <div class="v13-8-process-image-wrap">
+    <img src="images/img_142_e80711c6ee5b4b4f.png" alt="CONCEPTION GRAPHIQUE" loading="lazy">
+  </div>
+  <figcaption><strong>CONCEPTION GRAPHIQUE</strong><span>Adaptation réalisée par Tactical Design</span></figcaption>
+</figure></div>
+<div class="v13-8-process-pair"><figure class="v13-8-process-figure">
+  <div class="v13-8-process-image-wrap">
+    <img src="images/img_143_35e3a181f1359d7f.png" alt="LOGO FOURNI PAR LE CLIENT" loading="lazy">
+  </div>
+  <figcaption><strong>LOGO FOURNI PAR LE CLIENT</strong><span>Fichier de départ</span></figcaption>
+</figure><figure class="v13-8-process-figure">
+  <div class="v13-8-process-image-wrap">
+    <img src="images/img_144_166bb2823424fc68.png" alt="MATRICE DE GRAVURE ET DÉCOUPE LASER" loading="lazy">
+  </div>
+  <figcaption><strong>MATRICE DE GRAVURE ET DÉCOUPE LASER</strong><span>Préparation du fichier pour la fabrication</span></figcaption>
+</figure></div>
+<div class="v13-8-process-pair"><figure class="v13-8-process-figure">
+  <div class="v13-8-process-image-wrap">
+    <img src="images/img_145_fd975a3bff58eb0c.png" alt="PROJET CLIENT RÉALISÉ PAR IA" loading="lazy">
+  </div>
+  <figcaption><strong>PROJET CLIENT RÉALISÉ PAR IA</strong><span>Visuel de départ transmis par le client</span></figcaption>
+</figure><figure class="v13-8-process-figure">
+  <div class="v13-8-process-image-wrap">
+    <img src="images/img_146_b93329316cd50c01.png" alt="RÉALISATION DU TROPHÉE" loading="lazy">
+  </div>
+  <figcaption><strong>RÉALISATION DU TROPHÉE</strong><span>Modèle Sur-mesure — Collection Prestige</span></figcaption>
+</figure></div>
+</div></div>
+<div><span>03</span><strong>Vous réglez votre commande</strong>
+<p>Une fois le projet validé et approuvé, la facture vous est envoyée par e-mail avec les différentes modalités de paiement.</p>
+<p>Vous pourrez notamment régler votre commande par carte bancaire grâce au lien de paiement Stripe sécurisé communiqué avec la facture.</p></div>
+<div><span>04</span><strong>Nous fabriquons votre trophée</strong>
+<p>Après réception du règlement, votre trophée est fabriqué à l’atelier conformément au projet validé.</p>
+<p>Une photo du trophée terminé vous est ensuite envoyée afin que vous puissiez vérifier le résultat avant son expédition.</p></div>
+<div><span>05</span><strong>Livraison à domicile</strong>
+<p>Après validation, votre trophée est expédié à domicile par Colissimo, à l’adresse indiquée dans le formulaire de commande.</p></div>
+</div></div></section>
+</div></div>
+<style id="v13-6-processus-css">
+#processus-page-v13-6{position:fixed;inset:0;z-index:10050;background:#131A20;overflow:auto;display:none}
+#processus-page-v13-6.open{display:block}
+#processus-page-v13-6 .processus-page-v13-6-inner{min-height:100%;background:#131A20}
+#processus-page-v13-6 #process{display:block!important;background:#131A20!important}
+#close-processus-page-v13-6{position:sticky;top:0;z-index:20;margin:14px 18px 0;padding:10px 15px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#131A20;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+#processus-home-cta{background:#131A20!important}
+#processus-home-cta .btn{cursor:pointer}
+body.v13-6-processus-open{overflow:hidden}
+</style>
+<script id="v13-6-processus-controller">
+(function(){
+ function init(){
+  const openBtn=document.getElementById('open-processus-page'),page=document.getElementById('processus-page-v13-6'),closeBtn=document.getElementById('close-processus-page-v13-6');
+  if(!openBtn||!page||!closeBtn)return;
+  function show(){page.classList.add('open');page.setAttribute('aria-hidden','false');document.body.classList.add('v13-6-processus-open');page.scrollTop=0}
+  function hide(){page.classList.remove('open');page.setAttribute('aria-hidden','true');document.body.classList.remove('v13-6-processus-open')}
+  openBtn.addEventListener('click',show);closeBtn.addEventListener('click',hide);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&page.classList.contains('open'))hide()});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<style id="v13-7-processus-detail-css">
+#open-processus-page{font:inherit;cursor:pointer}
+#processus-page-v13-6 .v13-7-process{grid-template-columns:1fr;gap:28px;max-width:900px}
+#processus-page-v13-6 .v13-7-process>div{padding:22px 0 0}
+#processus-page-v13-6 .v13-7-process p{margin:8px 0;line-height:1.65;color:var(--muted)}
+#processus-page-v13-6 .v13-7-process a{color:var(--accent);font-weight:800;text-decoration:underline;text-underline-offset:3px}
+#processus-page-v13-6 .v13-7-process b{color:#fff}
+#processus-page-v13-6 .v13-7-before-after{margin-top:16px;min-height:110px;border:1px dashed rgba(255,255,255,.18);border-radius:12px;display:grid;place-items:center;color:var(--muted);text-align:center;padding:18px}
+</style>
+<script id="v13-7-processus-links">
+(function(){function init(){const l=document.getElementById('v13-7-configurator-link');if(!l)return;l.addEventListener('click',function(e){e.preventDefault();const p=document.getElementById('processus-page-v13-6');if(p){p.classList.remove('open');p.setAttribute('aria-hidden','true');document.body.classList.remove('v13-6-processus-open')}const b=document.querySelector('a.nav-cta[href="#configurateur"],.btn.primary[href="#configurateur"]');if(b)b.click()})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init()})();
+</script>
+<style id="v13-8-process-photos-css">
+#processus-page-v13-6 .v13-8-process-gallery{display:grid;gap:28px;margin-top:20px}
+#processus-page-v13-6 .v13-8-process-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+#processus-page-v13-6 .v13-8-process-figure{margin:0;min-width:0}
+#processus-page-v13-6 .v13-8-process-image-wrap{width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:transparent}
+#processus-page-v13-6 .v13-8-process-image-wrap img{display:block;width:100%;height:100%;object-fit:contain;background:transparent}
+#processus-page-v13-6 .v13-8-process-figure figcaption{padding:12px 4px 0}
+#processus-page-v13-6 .v13-8-process-figure figcaption strong{display:block;color:#fff;font-size:.92rem;letter-spacing:.03em;line-height:1.35;margin-bottom:4px}
+#processus-page-v13-6 .v13-8-process-figure figcaption span{display:block;color:var(--muted);font-size:.82rem;line-height:1.4}
+@media(max-width:640px){#processus-page-v13-6 .v13-8-process-pair{grid-template-columns:1fr;gap:20px}}
+</style>
+
+<style id="v13-9-process-button-text">
+#open-processus-page{
+  color:#fff !important;
+  font-weight:800 !important;
+}
+</style>
+
+
+<style id="v14-basin-css">
+#v13-recap .v14-basin-form{margin:28px 0 10px;padding:24px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.025)}
+#v13-recap .v14-form-title h3{margin:6px 0 8px;font-size:1.45rem}
+#v13-recap .v14-form-title p{margin:0 0 20px;color:var(--muted);line-height:1.55}
+#v13-recap .v14-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#v13-recap .v14-fields label{display:flex;flex-direction:column;gap:7px;color:#fff;font-weight:750;font-size:.9rem}
+#v13-recap .v14-fields .v14-wide{grid-column:1/-1}
+#v13-recap .v14-fields input,#v13-recap .v14-fields textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:#101820;color:#fff;padding:13px 14px;font:inherit;outline:none}
+#v13-recap .v14-fields input:focus,#v13-recap .v14-fields textarea:focus{border-color:rgba(255,196,0,.7);box-shadow:0 0 0 3px rgba(255,196,0,.08)}
+#v13-recap .v14-file small{color:var(--muted);font-weight:500;line-height:1.4}
+#v13-recap .v14-consent{display:flex;gap:10px;align-items:flex-start;margin:18px 0;color:#d9e0e6;line-height:1.45;font-size:.9rem}
+#v13-recap .v14-consent input{margin-top:4px;accent-color:var(--accent)}
+#v13-recap .v14-submit-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+#v13-recap #v14-submit{border:0;border-radius:12px;padding:14px 22px;background:var(--accent);color:#111;font-weight:900;cursor:pointer;font-size:1rem}
+#v13-recap #v14-submit:disabled{opacity:.55;cursor:wait}
+#v13-recap .v14-status{color:var(--muted);font-size:.9rem;line-height:1.4}
+#v13-recap .v14-status.is-error{color:#ff9b9b}.v14-status.is-success{color:#9be7ad}
+#v13-recap .v14-cart{margin:24px 0 10px;padding:20px;border:1px solid rgba(216,184,90,.3);border-radius:16px;background:rgba(216,184,90,.035)}
+#v13-recap .v14-cart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
+#v13-recap .v14-cart-head h3{margin:4px 0 0;font-size:1.3rem}
+#v13-recap .v14-cart-count{white-space:nowrap;padding:7px 10px;border-radius:999px;background:rgba(216,184,90,.14);color:#f0cf75;font-size:.82rem;font-weight:850}
+#v13-recap .v14-cart-items{display:grid;gap:10px}
+#v13-recap .v14-cart-item{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 13px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)}
+#v13-recap .v14-cart-item-main strong{display:block;margin-bottom:4px}.v14-cart-item-main small{display:block;color:var(--muted);line-height:1.4}
+#v13-recap .v14-cart-price{font-weight:900;color:#fff;white-space:nowrap}
+#v13-recap .v14-remove-trophy{grid-column:1/-1;justify-self:start;border:0;background:transparent;color:#ffb1b1;padding:0;cursor:pointer;font:inherit;font-size:.8rem;text-decoration:underline}
+#v13-recap .v14-cart-current{border-color:rgba(216,184,90,.42)}
+#v13-recap .v14-discount-info{margin-top:14px;padding:11px 13px;border:1px solid rgba(216,184,90,.32);border-radius:12px;background:rgba(216,184,90,.08);color:#f0cf75;font-weight:800;line-height:1.4}
+#v13-recap .v14-discount-info[hidden]{display:none!important}
+#v13-recap .v14-cart-breakdown{display:grid;gap:7px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(216,184,90,.22)}
+#v13-recap .v14-cart-breakdown>div{display:flex;justify-content:space-between;gap:18px;color:#d9e0e6}
+#v13-recap .v14-cart-breakdown strong{color:#fff}
+#v13-recap #v14-cart-discount-row strong{color:#9be7ad}
+#v13-recap .v14-cart-total{display:flex;justify-content:space-between;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(216,184,90,.34);font-size:1.08rem}.v14-cart-total strong{font-size:1.2rem;color:#f0cf75}
+
+#v13-recap #v14-add-trophy{font-weight:900}
+#v13-recap .v14-cart-actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:12px 0 24px}
+#v13-recap .v14-cart-actions button{min-height:46px;padding:12px 18px;border-radius:12px;font:inherit;font-weight:900;cursor:pointer}
+#v13-recap #v14-pass-order{background:var(--accent);color:#111;border:0}
+#v13-recap .v14-checkout-modal[hidden]{display:none!important}
+#v13-recap .v14-checkout-modal{position:fixed;inset:0;z-index:100000;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px;box-sizing:border-box;background:rgba(4,8,12,.90);backdrop-filter:blur(8px)}
+#v13-recap .v14-checkout-window{width:min(900px,100%);margin:auto;padding:22px;border:1px solid var(--line);border-radius:20px;background:#0b1218;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+#v13-recap .v14-checkout-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+#v13-recap .v14-checkout-head h2{margin:0;font-size:1.55rem}
+#v13-recap .v14-checkout-window .v14-basin-form{margin:0}
+body.v14-checkout-open{overflow:hidden}
+
+@media(max-width:680px){#v13-recap .v14-fields{grid-template-columns:1fr}#v13-recap .v14-fields .v14-wide{grid-column:auto}#v13-recap .v14-basin-form{padding:18px}#v13-recap .v14-cart-actions{display:grid;grid-template-columns:1fr}#v13-recap .v14-cart-actions button{width:100%}#v13-recap .v14-checkout-modal{padding:10px}#v13-recap .v14-checkout-window{padding:14px}#v13-recap .v14-checkout-head{align-items:flex-start;flex-direction:column-reverse}#v13-recap .v14-checkout-head button{width:100%}}
+</style>
+<script id="v14-basin-integration">
+/*
+  BASIN : endpoint Tactical Design actif.
+*/
+const TACTICAL_BASIN_ENDPOINT='https://usebasin.com/f/265e6befe6a6';
+
+
+window.v14TrophyCart=window.v14TrophyCart||[];
+function v14Money(n){return Number(n||0).toFixed(2).replace('.',',')+' €'}
+function v14Escape(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function v14CurrentSnapshot(){
+  const o=window.v14CurrentOrder||{};
+  const details=document.getElementById('v13-recap-details');
+  return {
+    id:'t'+Date.now()+Math.random().toString(16).slice(2),
+    collection:o.collection||window.tacticalSelectedGamme||'TROPHEE',
+    model:o.model||window.tacticalSelectedModel||'MODELE',
+    total:Number(o.total||0),
+    shipping:Number(o.shipping||3.9),
+    productTotal:Number(o.base||0)+Number(o.extras||0) || Math.max(0,Number(o.total||0)-Number(o.shipping||3.9)),
+    summary:details ? [...details.querySelectorAll('.v13-row')].map(r=>{
+      const k=(r.querySelector('strong')?.textContent||'').trim(),v=(r.querySelector('span')?.textContent||'').trim();return k?`${k} : ${v}`:''
+    }).filter(Boolean).join('\n') : ''
+  };
+}
+function v14AllTrophies(){
+  const items=[...window.v14TrophyCart];
+  if(window.v14CurrentOrder&&Number(window.v14CurrentOrder.total||0)>0) items.push(v14CurrentSnapshot());
+  return items;
+}
+function v14ProductTotal(t){
+  if(Number.isFinite(Number(t?.productTotal))&&Number(t.productTotal)>0)return Number(t.productTotal);
+  return Math.max(0,Number(t?.total||0)-Number(t?.shipping||3.9));
+}
+function v14DiscountRate(n){
+  if(n>=4)return .10;
+  if(n===3)return .075;
+  if(n===2)return .05;
+  return 0;
+}
+function v14OrderTotals(trophies){
+  const n=trophies.length;
+  const subtotal=trophies.reduce((a,t)=>a+v14ProductTotal(t),0);
+  const rate=v14DiscountRate(n);
+  const discount=subtotal*rate;
+  const shipping=n?3.9:0;
+  const grand=subtotal-discount+shipping;
+  return {n,subtotal,rate,discount,shipping,grand};
+}
+function renderV14Cart(){
+  const wrap=document.getElementById('v14-cart-items'),count=document.getElementById('v14-cart-count'),totalEl=document.getElementById('v14-cart-total-value');
+  if(!wrap)return;
+  const saved=window.v14TrophyCart||[],current=(window.v14CurrentOrder&&Number(window.v14CurrentOrder.total||0)>0)?v14CurrentSnapshot():null;
+  const all=[...saved,...(current?[current]:[])];
+  let html='';
+  saved.forEach((x,i)=>{html+=`<div class="v14-cart-item"><div class="v14-cart-item-main"><strong>Trophée ${i+1} — ${v14Escape(x.collection)} / ${v14Escape(x.model)}</strong><small>Ajouté au panier</small></div><div class="v14-cart-price">${v14Money(v14ProductTotal(x))}</div><button type="button" class="v14-remove-trophy" data-v14-remove="${v14Escape(x.id)}">Retirer ce trophée du panier</button></div>`});
+  if(current){html+=`<div class="v14-cart-item v14-cart-current"><div class="v14-cart-item-main"><strong>Trophée ${saved.length+1} — ${v14Escape(current.collection)} / ${v14Escape(current.model)}</strong><small>Configuration actuelle</small></div><div class="v14-cart-price">${v14Money(v14ProductTotal(current))}</div></div>`}
+  wrap.innerHTML=html||'<div class="v13-help">Aucun trophée dans la commande.</div>';
+  const totals=v14OrderTotals(all),n=totals.n;
+  if(count)count.textContent=n+' trophée'+(n>1?'s':'');
+  const subtotalEl=document.getElementById('v14-cart-subtotal-value'),discountRow=document.getElementById('v14-cart-discount-row'),discountLabel=document.getElementById('v14-cart-discount-label'),discountValue=document.getElementById('v14-cart-discount-value'),shippingEl=document.getElementById('v14-cart-shipping-value'),info=document.getElementById('v14-discount-info');
+  if(subtotalEl)subtotalEl.textContent=v14Money(totals.subtotal);
+  if(shippingEl)shippingEl.textContent=v14Money(totals.shipping);
+  if(totalEl)totalEl.textContent=v14Money(totals.grand);
+  if(discountRow){
+    discountRow.hidden=!totals.rate;
+    if(discountLabel)discountLabel.textContent='Remise multi-trophées − '+String(totals.rate*100).replace('.',',')+' %';
+    if(discountValue)discountValue.textContent='− '+v14Money(totals.discount);
+  }
+  if(info){
+    if(n===1){info.hidden=false;info.textContent='Ajoutez un 2e trophée : −5 % sur l’ensemble des trophées.'}
+    else if(n===2){info.hidden=false;info.textContent='Remise appliquée : −5 %. Ajoutez un 3e trophée pour passer à −7,5 %.'}
+    else if(n===3){info.hidden=false;info.textContent='Remise appliquée : −7,5 %. Ajoutez un 4e trophée pour passer à −10 %.'}
+    else if(n>=4){info.hidden=false;info.textContent='Remise maximale appliquée : −10 % sur l’ensemble des trophées.'}
+    else{info.hidden=true;info.textContent=''}
+  }
+  wrap.querySelectorAll('[data-v14-remove]').forEach(b=>b.addEventListener('click',()=>{window.v14TrophyCart=window.v14TrophyCart.filter(x=>x.id!==b.dataset.v14Remove);renderV14Cart();updateV14BasinFields()}));
+}
+function v14Text(el){return (el?.textContent||'').replace(/\s+/g,' ').trim()}
+function updateV14BasinFields(){
+  const form=document.getElementById('v14-basin-form');
+  if(!form)return;
+  const trophies=v14AllTrophies();
+  const nom=(form.querySelector('[name="nom"]')?.value||'').trim().toUpperCase();
+  let summary='';
+  trophies.forEach((t,i)=>{
+    summary+=`TROPHEE ${i+1}\nCollection : ${t.collection}\nModèle : ${t.model}\n${t.summary||''}\nSous-total trophée hors livraison : ${v14Money(v14ProductTotal(t))}\n`;
+    if(i<trophies.length-1)summary+='\n------------------------------\n\n';
+  });
+  const totals=v14OrderTotals(trophies),grand=totals.grand;
+  summary+=`\n==============================\nSous-total trophées : ${v14Money(totals.subtotal)}\n`;
+  if(totals.rate)summary+=`Remise multi-trophées : -${String(totals.rate*100).replace('.',',')} % (-${v14Money(totals.discount)})\n`;
+  summary+=`Livraison : ${v14Money(totals.shipping)}\nTOTAL COMMANDE : ${v14Money(totals.grand)}\n`;
+  if(trophies.length>1){
+    form.querySelector('#v14-email-subject').value='COMMANDE TROPHEE – MULTIPLE – '+(nom||'CLIENT');
+    form.querySelector('#v14-collection').value='MULTIPLE';
+    form.querySelector('#v14-modele').value=trophies.length+' trophées';
+  }else{
+    const t=trophies[0]||{};
+    form.querySelector('#v14-email-subject').value='COMMANDE TROPHEE – '+(t.collection||'TROPHEE')+' / '+(t.model||'MODELE')+' – '+(nom||'CLIENT');
+    form.querySelector('#v14-collection').value=t.collection||'';
+    form.querySelector('#v14-modele').value=t.model||'';
+  }
+  form.querySelector('#v14-total').value=v14Money(grand);
+  form.querySelector('#v14-order-summary').value=summary.trim();
+  renderV14Cart();
+}
+
+(function(){
+ function v14Ready(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn,{once:true});else setTimeout(fn,0)}
+ v14Ready(function(){
+  const form=document.getElementById('v14-basin-form');
+  if(!form)return;
+  const status=document.getElementById('v14-status');
+  const submit=document.getElementById('v14-submit');
+  form.querySelector('[name="nom"]').addEventListener('input',updateV14BasinFields);
+  const addTrophy=document.getElementById('v14-add-trophy');
+  if(addTrophy)addTrophy.addEventListener('click',()=>{
+    if(!window.v14CurrentOrder||!Number(window.v14CurrentOrder.total||0))return;
+    window.v14TrophyCart.push(v14CurrentSnapshot());
+    window.v14CurrentOrder=null;
+    const recap=document.getElementById('v13-recap'),page=document.getElementById('configurator-page-v9');
+    if(recap)recap.hidden=true;
+    if(page){
+      page.hidden=false;
+      page.classList.add('is-open');
+      document.documentElement.classList.add('configurator-open-v9');
+      document.body.classList.add('configurator-open-v9');
+    }
+    if(typeof window.tacticalV10GoToCollection==='function'){
+      window.tacticalV10GoToCollection();
+    }else if(page){
+      // Sécurité : si l'initialisation V10 est retardée, forcer visuellement la première étape.
+      page.querySelectorAll('.v10-page').forEach(p=>p.classList.toggle('active',p.dataset.v10Page==='collection'));
+      const navs=page.querySelectorAll('[data-step-nav]');
+      navs.forEach((b,i)=>{b.classList.toggle('active',i===0);b.classList.remove('done')});
+      const back=page.querySelector('.v10-back');if(back)back.disabled=true;
+    }
+    updateV14BasinFields();
+    try{page?.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){window.scrollTo(0,0)}
+  });
+  const passOrder=document.getElementById('v14-pass-order');
+  const checkout=document.getElementById('v14-checkout-modal');
+  const closeCheckout=document.getElementById('v14-close-checkout');
+  function openCheckout(){
+    renderV14Cart();
+    updateV14BasinFields();
+    if(checkout){checkout.hidden=false;document.body.classList.add('v14-checkout-open')}
+    setTimeout(()=>form.querySelector('[name="prenom"]')?.focus(),20);
+  }
+  function closeCheckoutWindow(){
+    if(checkout){checkout.hidden=true;document.body.classList.remove('v14-checkout-open')}
+  }
+  if(passOrder)passOrder.addEventListener('click',openCheckout);
+  if(closeCheckout)closeCheckout.addEventListener('click',closeCheckoutWindow);
+  if(checkout)checkout.addEventListener('click',e=>{if(e.target===checkout)closeCheckoutWindow()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&checkout&&!checkout.hidden)closeCheckoutWindow()});
+  renderV14Cart();
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    status.className='v14-status';
+    if(!form.reportValidity())return;
+    updateV14BasinFields();
+    if(!TACTICAL_BASIN_ENDPOINT){
+      status.textContent="Le formulaire est intégré, mais l'URL d'endpoint Basin doit encore être renseignée dans le fichier pour activer l'envoi.";
+      status.classList.add('is-error');
+      return;
+    }
+    submit.disabled=true;submit.textContent='Envoi en cours…';status.textContent='Transmission de votre demande…';
+    try{
+      const data=new FormData(form);
+      const response=await fetch(TACTICAL_BASIN_ENDPOINT,{method:'POST',body:data,headers:{'Accept':'application/json'}});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      status.textContent='Votre demande a bien été transmise à Tactical Design.';
+      status.classList.add('is-success');
+      submit.textContent='Demande envoyée';
+    }catch(err){
+      console.error('Basin submission error',err);
+      status.textContent="L'envoi n'a pas abouti. Vérifiez votre connexion ou réessayez dans quelques instants.";
+      status.classList.add('is-error');
+      submit.disabled=false;submit.textContent='Réessayer l’envoi';
+    }
+  });
+ });
+})();
+</script>
+</body>
+</html>
